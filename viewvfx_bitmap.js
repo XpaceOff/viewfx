@@ -1,12 +1,13 @@
 let frames = [];
+let frames02 = [];
 let nFrame = 0;
 let mediaSource01 = "http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv";
-let mediaSource02 = "media/pro01Blur.mp4";
+let mediaSource02 = "media/proABlur.mp4";
 let muted = true;
 
 document.addEventListener("DOMContentLoaded", () => {
-    mediaSource01 = "media/pro01.mp4";
-    mediaSource02 = "media/pro01.mp4";
+    mediaSource01 = "media/proA.mp4";
+    mediaSource02 = "media/proB.mp4";
 
     let canvas = document.getElementById('output-canvas');  // get the canvas from the page
     let canvasContext = canvas.getContext("2d");            // Create the canvas context to paint on
@@ -26,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     videoB.autoPlay = false;
     videoB.loop = false;
-    videoB.muted = true;
+    videoB.muted = muted;
 
     videoContainer = {  // we will add properties as needed
         video : videoA,
@@ -35,26 +36,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     videoContainer02 = {  // we will add properties as needed
         video : videoB,
-        ready : false,   
+        ready : false,
     };
 
     //videoB.oncanplay = cacheVideo02;
-    videoA.oncanplay = cacheVideo; // set the event to the play function that can be found below
+    videoA.oncanplay = cacheVideo(frames, videoContainer); // Cache the video 1 into the array of images `frames`
+    videoB.oncanplay = cacheVideo(frames02, videoContainer02); // Cache the video 2 into the array of images `frames02`
+
+    requestAnimationFrame(updateCanvas);
     
     function cacheVideo02(event){
         videoContainer02.ready = true;
     }
 
-    async function getVideoTrack() {
-        await videoContainer.video.play();
-        const [track] = videoA.captureStream().getVideoTracks();
-        videoA.onended = (evt) => track.stop();
+    async function getVideoTrack(vidContainer) {
+        await vidContainer.video.play();
+        const [track] = vidContainer.video.captureStream().getVideoTracks();
+        vidContainer.video.onended = (evt) => track.stop();
         return track;
     }
 
-    async function cacheVideo(event){ // this is a referance to the video
+    async function cacheVideo(frameList, videoObj){ // this is a referance to the video
         if (window.MediaStreamTrackProcessor) {
-            const track = await getVideoTrack();
+            const track = await getVideoTrack(videoObj);
             const processor = new MediaStreamTrackProcessor(track);
             const reader = processor.readable.getReader();
             readChunk();
@@ -64,8 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.log(done);
                     if (value) {
                         const bitmap = await createImageBitmap(value);
-                        const index = frames.length;
-                        frames.push(bitmap);
+                        const index = frameList.length;
+                        frameList.push(bitmap);
                         //select.append(new Option("Frame #" + (index + 1), index));
                         value.close();
                     }
@@ -74,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else {
                         // Once image is loaded into buffer
                         console.log("Loaded!");
-                        console.log(frames.length, " frames.");
+                        console.log(frameList.length, " frames.");
 
                         // the video may not match the canvas size so find a scale to fit
                         videoContainer.scale = Math.min(
@@ -84,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         videoContainer.ready = true;
                         // the video can be played so hand it off to the display function
-                        requestAnimationFrame(updateCanvas);
+                        //requestAnimationFrame(updateCanvas);
                     }
                 });
             }
@@ -106,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             var left = canvas.width / 2 - (vidW /2 ) * scale;
 
             const frame = frames[nFrame];
+            const frameB = frames02[nFrame];
 
             // now just draw the video the correct size
             //canvasContext.drawImage(frame, left, top, vidW * scale, vidH * scale);
@@ -119,9 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
             canvasContext.fillRect(0,0, vidW, vidH);*/
 
             // Diff Code
-            //canvasContext.globalAlpha = mixAmount;   // amount of FX
-            //canvasContext.globalCompositeOperation = "difference"; 
-            //canvasContext.drawImage(videoContainer02.video, left, top, vidW * scale, vidH * scale);
+            canvasContext.globalAlpha = mixAmount;   // amount of FX
+            canvasContext.globalCompositeOperation = "difference"; 
+            //canvasContext.drawImage(frame, left, top, vidW * scale, vidH * scale);
+            canvasContext.drawImage(frameB, 0, 0, 800, 400)//, vidW*scale, vidH);
             //canvasContext.drawImage(canvasContext.canvas, left, top, vidW * scale, vidH * scale);
 
             // Get Icon back after filter
