@@ -1,61 +1,59 @@
 let frames = [];
 let nFrame = 0;
+let mediaSource01 = "http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv";
+let mediaSource02 = "media/pro01Blur.mp4";
+let muted = true;
 
 document.addEventListener("DOMContentLoaded", () => {
-    let tmpCanvas, tmpCanvasContext; 
-    let mediaSource01 = "http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv";
-    let mediaSource02 = "media/pro01Blur.mp4";
     mediaSource01 = "media/pro01.mp4";
     mediaSource02 = "media/pro01.mp4";
 
-    let muted = true;
-    let canvas = document.getElementById('output-canvas'); // get the canvas from the page
-    let canvasContext = canvas.getContext("2d");
-    let videoContainer, videoContainer02; // object to hold video and associated info
-    let video02 = document.createElement("video"); // create a video element
-    let video = document.createElement("video"); // create a video element
+    let canvas = document.getElementById('output-canvas');  // get the canvas from the page
+    let canvasContext = canvas.getContext("2d");            // Create the canvas context to paint on
+    let videoContainer, videoContainer02;                   // Object to hold video and associated info
+    let videoA = document.createElement("video");          // create the video A element
+    let videoB = document.createElement("video");            // create the video B element
 
-    video.src = mediaSource01;
-    video02.src = mediaSource02;
+    videoA.src = mediaSource01;
+    videoB.src = mediaSource02;
 
     // the video will now begin to load.
     // As some additional info is needed we will place the video in a
     // containing object for convenience
-    video.autoPlay = false; // ensure that the video does not auto play
-    video.loop = false; // set the video to not loop.
-    video.muted = muted;
+    videoA.autoPlay = false; // ensure that the video does not auto play
+    videoA.loop = false; // set the video to not loop.
+    videoA.muted = muted;
 
-    video02.autoPlay = false;
-    video02.loop = false;
-    video02.muted = true;
+    videoB.autoPlay = false;
+    videoB.loop = false;
+    videoB.muted = true;
 
     videoContainer = {  // we will add properties as needed
-        video : video,
+        video : videoA,
         ready : false,
         isPause : true 
     };
     videoContainer02 = {  // we will add properties as needed
-        video : video02,
+        video : videoB,
         ready : false,   
     };
 
-    //video02.oncanplay = readyToPlayVideo02;
-    video.oncanplay = readyToPlayVideo; // set the event to the play function that can be found below
+    //videoB.oncanplay = cacheVideo02;
+    videoA.oncanplay = cacheVideo; // set the event to the play function that can be found below
     
-    function readyToPlayVideo02(event){
+    function cacheVideo02(event){
         videoContainer02.ready = true;
     }
 
     async function getVideoTrack() {
         await videoContainer.video.play();
-        const [track] = video.captureStream().getVideoTracks();
-        video.onended = (evt) => track.stop();
+        const [track] = videoA.captureStream().getVideoTracks();
+        videoA.onended = (evt) => track.stop();
         return track;
     }
 
-    async function readyToPlayVideo(event){ // this is a referance to the video
+    async function cacheVideo(event){ // this is a referance to the video
         if (window.MediaStreamTrackProcessor) {
-            console.log("MediaStreamTrackProcessor");
             const track = await getVideoTrack();
             const processor = new MediaStreamTrackProcessor(track);
             const reader = processor.readable.getReader();
@@ -90,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
             }
-            //playPauseClick();
         } else {
           console.error("your browser doesn't support this API yet");
         }
@@ -102,14 +99,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // only draw if loaded and ready
         if(videoContainer !== undefined && videoContainer.ready){ 
             // find the top left of the video on the canvas
-            //video.muted = muted;
             var scale = videoContainer.scale;
             var vidH = videoContainer.video.videoHeight;
             var vidW = videoContainer.video.videoWidth;
             var top = canvas.height / 2 - (vidH /2 ) * scale;
             var left = canvas.width / 2 - (vidW /2 ) * scale;
 
-            console.log("loading frame ", nFrame);
             const frame = frames[nFrame];
 
             // now just draw the video the correct size
@@ -138,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     nFrame = nFrame + 1;
                 }
                 else{
-                    console.log("PAUSED");
                     nFrame = 1;
                     videoContainer.isPause = true;
                 }
