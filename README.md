@@ -25,3 +25,6 @@ $ npm start
 
 Before & After
 http://thenewcode.com/364/Interactive-Before-and-After-Video-Comparison-in-HTML5-Canvas
+
+
+## Test editing
