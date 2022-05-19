@@ -14,6 +14,12 @@ $ npm install --save-dev electron
 $ npm start
 ```
 
+## Build program
+
+> Note: You need to have `choco` installed on your win machine
+
+https://github.com/electron/electron-packager
+
 # Ref
 
 - https://redstapler.co/realtime-video-processing-javascript-tutorial/
