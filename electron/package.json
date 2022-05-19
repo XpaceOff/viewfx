@@ -1,0 +1,16 @@
+{
+  "name": "viewfx",
+  "version": "0.0.1",
+  "description": "Simple viewer for the visual fx industry",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ricardo J Marques Montilla",
+  "license": "TBD",
+  "devDependencies": {
+    "electron": "^18.0.0",
+    "electron-packager": "^15.5.1"
+  }
+}
