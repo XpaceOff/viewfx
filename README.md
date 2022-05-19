@@ -20,6 +20,11 @@ $ npm start
 
 https://github.com/electron/electron-packager
 
+```bash
+$ npm install --save-dev electron-packager
+$ npx electron-packager .
+```
+
 # Ref
 
 - https://redstapler.co/realtime-video-processing-javascript-tutorial/
