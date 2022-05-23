@@ -1,5 +1,7 @@
 <script>
 	import Canvas from './Canvas.svelte';
+	import VideoCanvas from './VideoCanvas.svelte';
+	import Fps from './FPS.svelte';
 	import { onMount } from 'svelte';
 	import { invoke } from '@tauri-apps/api/tauri'
 
@@ -53,12 +55,12 @@
 		requestAnimationFrame(updateCanvas);
 	}
 
-	onMount(() => {
+	/*onMount(() => {
 		// prepare canvas stores
 		context = canvas.getContext('2d');
-	});
+	});*/
 
-	/*invoke('my_custom_command').then((data_from_rust) => {
+	/*invoke('get_image_raw_data').then((data_from_rust) => {
 		//frames.push(data_from_rust);
 		//console.log(data_from_rust);
 
@@ -73,14 +75,14 @@
 	});*/
 
 	export let name;
+	console.log(name);
 </script>
-
-<svelte:body class:profile={isProfilePage} />
 
 <main class="h-full w-full overflow-hidden">
 	<div class="flex flex-col w-full h-full overflow-hidden">
-		<div class="flex w-full h-full basis-11/12 bg-zinc-900">
-			
+		<div class="flex w-full h-full basis-11/12 items-center justify-center bg-zinc-900">
+			<VideoCanvas></VideoCanvas>
+			<Fps></Fps>
 		</div>
 		<div class="flex w-full basis-1/12 bg-zinc-800"></div>
 	</div>
