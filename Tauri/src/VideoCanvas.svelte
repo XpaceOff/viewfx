@@ -7,7 +7,7 @@
     let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
-    let videoFrameLength = 9
+    let videoFrameLength = 15;
     let framesCached = 0;
 
     // DOM obj variables

@@ -7,11 +7,14 @@
 async fn get_image_raw_data(frame_number: u32, canvas_w: u32, canvas_h: u32) -> Result<(Vec<u8>, u32, (u32, u32)), String> {
   use image::GenericImageView;
 
+  // Number pf pads (0) for the image number.
+  let n_pads = 3;
+
   println!("{}x{}", canvas_w, canvas_h);
 
   // TODO: Make sure that this number does not lead to a security issue.
   // Set the image to load
-  let img_name = format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-00{}.jpg", frame_number);
+  let img_name = format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-{:0n_pads$}.jpg", frame_number, n_pads = n_pads);
   println!("{}", img_name);
 
   // Open the image
