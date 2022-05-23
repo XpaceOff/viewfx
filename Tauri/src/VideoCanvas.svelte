@@ -3,8 +3,8 @@
 	import { onMount } from 'svelte';
 
     // Images variables
-    let rawImagesFrames = [];
-    let rawImagesFramesOrder = [];
+    let rawImageFrames = [];
+    let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
     let videoFrameLength = 9
@@ -42,7 +42,7 @@
 
         
         for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
-            rawImagesFramesOrder.push(-1);
+            rawImageFramesOrder.push(-1);
         }
 
         for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
@@ -52,12 +52,14 @@
             
             invoke('get_image_raw_data', { frameNumber, canvasW, canvasH }).then((data_from_rust) => {
 
-                // Push an array of the image's raw data into rawImagesFrames
-                rawImagesFrames.push([data_from_rust[0], data_from_rust[2]]);
+                // Push an array of the image's raw data into rawImageFrames
+                let raw = Uint8ClampedArray.from(data_from_rust[0]);
+                rawImageFrames.push([raw, data_from_rust[2]]);
+                //rawImageFrames.push([data_from_rust[0], data_from_rust[2]]);
 
-                //console.log("Frame", data_from_rust[1] - frameStart, "in pos", rawImagesFrames.length-1, "will be saved in", data_from_rust[1] - frameStart);
+                //console.log("Frame", data_from_rust[1] - frameStart, "in pos", rawImageFrames.length-1, "will be saved in", data_from_rust[1] - frameStart);
                 // Save the right order of frames
-                rawImagesFramesOrder[data_from_rust[1] - frameStart] = rawImagesFrames.length - 1;
+                rawImageFramesOrder[data_from_rust[1] - frameStart] = rawImageFrames.length - 1;
 
                 framesCached += 1;
 
@@ -71,13 +73,12 @@
     function updateCanvas(time) {
 		// TODO: Get the image size and update the variables
         
-		imgW = rawImagesFrames[rawImagesFramesOrder[currentFrame]][1][0];
-		imgH = rawImagesFrames[rawImagesFramesOrder[currentFrame]][1][1];
+		imgW = rawImageFrames[rawImageFramesOrder[currentFrame]][1][0];
+		imgH = rawImageFrames[rawImageFramesOrder[currentFrame]][1][1];
 		
 		// 24 frames per second (1000/24fps = 41.66):
 		if (time > lastFrameTime + 41.66) {
-			let raw = Uint8ClampedArray.from(rawImagesFrames[rawImagesFramesOrder[currentFrame]][0]);
-			let currentImageData = new ImageData(raw, imgW, imgH);
+			let currentImageData = new ImageData(rawImageFrames[rawImageFramesOrder[currentFrame]][0], imgW, imgH);
 
 			context.putImageData(currentImageData, 0, 0);
 			lastFrameTime = time;
