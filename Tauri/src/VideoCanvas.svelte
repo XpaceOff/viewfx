@@ -1,6 +1,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
+    import { barFrameCacheStatus } from './stores'
 
     // Images variables
     let rawImageFrames = [];
@@ -39,16 +40,21 @@
 	});
 
     function startCaching(){
-
         
         for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
             rawImageFramesOrder.push(-1);
+
+            // Update the bar cache status to 0 (non-cached)
+            $barFrameCacheStatus.push(0);
         }
 
         for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
 
             frameNumber = frameStart + nFrame;
             console.log("# ----- > ", frameNumber);
+
+            // Update the bar cache status to 1 (caching)
+            $barFrameCacheStatus[nFrame] = 1;
             
             invoke('get_image_raw_data', { frameNumber, canvasW, canvasH }).then((data_from_rust) => {
 
@@ -60,6 +66,9 @@
                 //console.log("Frame", data_from_rust[1] - frameStart, "in pos", rawImageFrames.length-1, "will be saved in", data_from_rust[1] - frameStart);
                 // Save the right order of frames
                 rawImageFramesOrder[data_from_rust[1] - frameStart] = rawImageFrames.length - 1;
+
+                // Update the bar cache status to 1 (cached)
+                $barFrameCacheStatus[data_from_rust[1] - frameStart] = 2;
 
                 framesCached += 1;
 

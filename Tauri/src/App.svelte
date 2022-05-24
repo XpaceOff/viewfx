@@ -1,5 +1,6 @@
 <script>
 	import VideoCanvas from './VideoCanvas.svelte';
+	import Bar from './bar.svelte';
 	import Fps from './FPS.svelte';
 	
 	//let newImg = imagedata_to_image(currentImageData);
@@ -17,14 +18,13 @@
 <main class="h-full w-full overflow-hidden">
 	<div class="flex flex-col w-full h-full overflow-hidden">
 		<div class="flex w-full h-full basis-11/12 items-center justify-center bg-zinc-900">
-			<VideoCanvas></VideoCanvas>
+			 <VideoCanvas></VideoCanvas> 
 			<Fps></Fps>
 		</div>
-		<div class="flex w-full basis-1/12 bg-zinc-800"></div>
+		<div class="flex w-full basis-1/12 bg-zinc-800">
+			<Bar></Bar>
+		</div>
 	</div>
-	
-	
-	<!-- <Canvas></Canvas> -->
 </main>
 
 <style global lang="postcss">
@@ -35,5 +35,6 @@
 	:global(body) {
 		/* this will apply to <body> */
 		background: #27272A;
+		padding: 3px;
 	}
 </style>
