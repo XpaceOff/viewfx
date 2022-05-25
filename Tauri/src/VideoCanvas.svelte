@@ -1,14 +1,14 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
-    import { barFrameCacheStatus } from './stores'
+    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame } from './stores'
 
     // Images variables
     let rawImageFrames = [];
     let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
-    let videoFrameLength = 15;
+    $videoTotalFrameLength = 21;
     let framesCached = 0;
 
     // DOM obj variables
@@ -24,7 +24,7 @@
     // 
     let frameNumber = 0;
     let frameStart = 1;
-    let currentFrame = 0;
+    $videoCurrentFrame = 0;
 
 
     // Time variables
@@ -37,27 +37,27 @@
         canvasH = Math.floor(canvas.getBoundingClientRect().height);
 
         startCaching();
+        updateCanvas();
 	});
 
-    function startCaching(){
+    async function startCaching(){
         
-        for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
-            rawImageFramesOrder.push(-1);
+        for (let nFrame=0; nFrame<$videoTotalFrameLength; nFrame++){
+            // Create the array that will contain the right order of frames already cached
+            rawImageFramesOrder.push(0);
 
             // Update the bar cache status to 0 (non-cached)
             $barFrameCacheStatus.push(0);
         }
 
-        for (let nFrame=0; nFrame<videoFrameLength; nFrame++){
+        for (let nFrame=0; nFrame<$videoTotalFrameLength; nFrame++){
 
             frameNumber = frameStart + nFrame;
-            console.log("# ----- > ", frameNumber);
 
             // Update the bar cache status to 1 (caching)
             $barFrameCacheStatus[nFrame] = 1;
             
             invoke('get_image_raw_data', { frameNumber, canvasW, canvasH }).then((data_from_rust) => {
-
                 // Push an array of the image's raw data into rawImageFrames
                 let raw = Uint8ClampedArray.from(data_from_rust[0]);
                 rawImageFrames.push([raw, data_from_rust[2]]);
@@ -73,30 +73,37 @@
                 framesCached += 1;
 
                 // Once all frames are cached
-                if (framesCached == videoFrameLength) updateCanvas();
+                //if (framesCached == $videoTotalFrameLength) updateCanvas();
             })
         }
-
     }
 
     function updateCanvas(time) {
-		// TODO: Get the image size and update the variables
         
-		imgW = rawImageFrames[rawImageFramesOrder[currentFrame]][1][0];
-		imgH = rawImageFrames[rawImageFramesOrder[currentFrame]][1][1];
-		
-		// 24 frames per second (1000/24fps = 41.66):
+        // 24 frames per second (1000/24fps = 41.66):
+        // Update the canvas every X frames per second 
 		if (time > lastFrameTime + 41.66) {
-			let currentImageData = new ImageData(rawImageFrames[rawImageFramesOrder[currentFrame]][0], imgW, imgH);
+            //console.log($barFrameCacheStatus[$videoCurrentFrame]);
+            
+            // Update canvas if the image is cached
+            if ($barFrameCacheStatus[$videoCurrentFrame] == 2){
+                console.log($videoCurrentFrame, "printed ! ");
+                // TODO: Get the image size and update the variables
+                imgW = rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][1][0];
+                imgH = rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][1][1];
 
-			context.putImageData(currentImageData, 0, 0);
-			lastFrameTime = time;
-			
-			if (currentFrame == videoFrameLength - 1){
-				currentFrame = 0;
-			} else {
-				currentFrame = currentFrame + 1;
-			}
+                let currentImageData = new ImageData(rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][0], imgW, imgH);
+    
+                context.putImageData(currentImageData, 0, 0);
+                lastFrameTime = time;
+                
+                if ($videoCurrentFrame == $videoTotalFrameLength - 1){
+                    $videoCurrentFrame = 0;
+                } else {
+                    $videoCurrentFrame = $videoCurrentFrame + 1;
+                }
+            }
+
 		}
 		requestAnimationFrame(updateCanvas);
 	}

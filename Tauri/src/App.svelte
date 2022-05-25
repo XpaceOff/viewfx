@@ -17,11 +17,11 @@
 
 <main class="h-full w-full overflow-hidden">
 	<div class="flex flex-col w-full h-full overflow-hidden">
-		<div class="flex w-full h-full basis-11/12 items-center justify-center bg-zinc-900">
+		<div class="flex w-full h-full items-center justify-center bg-zinc-900 my-1">
 			 <VideoCanvas></VideoCanvas> 
 			<Fps></Fps>
 		</div>
-		<div class="flex w-full basis-1/12 bg-zinc-800">
+		<div class="flex w-full h-24 bg-zinc-800 pt-2">
 			<Bar></Bar>
 		</div>
 	</div>

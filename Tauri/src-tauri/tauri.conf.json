@@ -56,7 +56,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 650,
         "resizable": true,
         "title": "ViewFX",
         "width": 1000
