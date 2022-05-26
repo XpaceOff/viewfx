@@ -2,13 +2,19 @@
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
     import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame } from './stores'
+    //import workerURL from './worker.js'
+    import WorkerBuilder from './worker-builder';
+    import workerFile from './worker';
+    //import { Worker } from 'worker_threads';
+    //import test from './worker/worker'
+
 
     // Images variables
     let rawImageFrames = [];
     let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
-    $videoTotalFrameLength = 21;
+    $videoTotalFrameLength = 3;
     let framesCached = 0;
 
     // DOM obj variables
@@ -37,7 +43,7 @@
         canvasH = Math.floor(canvas.getBoundingClientRect().height);
 
         startCaching();
-        updateCanvas();
+        //updateCanvas();
 	});
 
     async function startCaching(){
@@ -56,6 +62,19 @@
 
             // Update the bar cache status to 1 (caching)
             $barFrameCacheStatus[nFrame] = 1;
+
+            if (window.Worker) {
+                var myWorker = new WorkerBuilder(workerFile);
+                //var myWorker = new Worker("./worker/worker.js", { type: "module" });
+
+                myWorker.postMessage([frameNumber, canvasW, canvasH]);
+                console.log('Message posted to worker');
+
+                myWorker.onmessage = function(e) {
+                    console.log(e.data);
+                    console.log('Message received from worker');
+                }
+            }
             
             invoke('get_image_raw_data', { frameNumber, canvasW, canvasH }).then((data_from_rust) => {
                 // Push an array of the image's raw data into rawImageFrames
