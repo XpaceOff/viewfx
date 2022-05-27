@@ -55,9 +55,40 @@ async fn get_image_raw_data(frame_number: u32, canvas_w: u32, canvas_h: u32) -> 
 
 }
 
-fn main() {
+
+use axum::{
+  routing::{get},
+  Router,
+};
+use std::net::SocketAddr;
+
+#[tokio::main]
+async fn main() {
+
+  tokio::spawn(async {
+    // build our application with a route
+    let app = Router::new()
+    // `GET /` goes to `root`
+    .route("/", get(root));
+  
+    // run our app with hyper
+    // `axum::Server` is a re-export of `hyper::Server`
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    println!("listening on {}", addr);
+    //tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+  });
+
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![get_image_raw_data])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+}
+
+// basic handler that responds with a static string
+async fn root() -> &'static str {
+  "This should return my raw Image"
 }
