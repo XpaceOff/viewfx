@@ -3,59 +3,6 @@
   windows_subsystem = "windows"
 )]
 
-#[tauri::command]
-async fn get_image_raw_data(frame_number: u32, canvas_w: u32, canvas_h: u32) -> Result<(Vec<u8>, u32, (u32, u32)), String> {
-  use image::GenericImageView;
-
-  // Number pf pads (0) for the image number.
-  let n_pads = 3;
-
-  println!("{}x{}", canvas_w, canvas_h);
-
-  // TODO: Make sure that this number does not lead to a security issue.
-  // Set the image to load
-  let img_name = format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-{:0n_pads$}.jpg", frame_number, n_pads = n_pads);
-  println!("{}", img_name);
-
-  // Open the image
-  let img = image::open(img_name);
-  let img = match img {
-    Ok(tmp_image) => tmp_image,
-    Err(_error) => return Err("Error reading file".into()),
-  };
-
-  //let img = img.resize(canvas_w, canvas_h, image::imageops::Lanczos3);
-  let img = img.thumbnail(canvas_w, canvas_h);
-  
-  // The dimensions method returns the images width and height.
-  println!("dimensions {:?}", img.dimensions());
-
-  // The color method returns the image's `ColorType`.
-  //println!("{:?}", img.color());
-
-  let mut img_raw_data = Vec::new();
-  for (_x, _y, pixel) in img.pixels() {
-    // Do something with pixel.
-    //println!("{:?}", pixel.0[0]);
-    img_raw_data.push(pixel.0[0]);
-    img_raw_data.push(pixel.0[1]);
-    img_raw_data.push(pixel.0[2]);
-    img_raw_data.push(pixel.0[3]);
-  }
-
-  println!("Data transformed!");
-
-  // TODO: Make sure that this is 100% secure
-  // Returns:{
-  //   1- An array with the raw data of the current image
-  //   2- Current frame number / image number
-  //   3- The size to be display on the canvas
-  // }
-  Ok((img_raw_data, frame_number, img.dimensions()))
-
-}
-
-
 use axum::{
   routing::{get},
   http::{StatusCode, Method, HeaderValue},
@@ -67,23 +14,28 @@ use std::net::SocketAddr;
 use image::GenericImageView;
 use tower_http::cors::CorsLayer;
 
+// Make the main function Async with Tokio
 #[tokio::main]
 async fn main() {
 
+  // Create a new thread that will run the backend-api/http-bridge
+  // to load Images. This solve the bottleneck on Tauri's IPC
+  // Check https://github.com/tauri-apps/tauri/discussions/4191
+  // for more info about the problem
   tokio::spawn(async {
-    // build our application with a route
+
+    // build our application with routes
     let app = Router::new()
-    // `GET /` goes to `root`
     .route("/", get(|| async { "ViewFX" }))
     .route("/image_raw_data", get(http_get_image_raw_data))
     .layer(
+      // CORS Middleware that solves the CORS problem
       // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
       // and https://github.com/tokio-rs/axum/blob/main/examples/cors/src/main.rs
       // for more details
-      //
-      // pay attention that for some request types like posting content-type: application/json
-      // it is required to add ".allow_headers([http::header::CONTENT_TYPE])"
-      // or see this issue https://github.com/tokio-rs/axum/issues/849
+
+      // TODO: You might need a way to get the port that Tauri is running on.
+      // If not then the app won't work because of the CORS problem
       CorsLayer::new()
       .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
       .allow_methods([Method::GET]),
@@ -92,24 +44,26 @@ async fn main() {
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("listening on {}", addr);
-    //tracing::debug!("listening on {}", addr);
+    println!("# http bridge listening on {}", addr);
+
     axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+      .serve(app.into_make_service())
+      .await
+      .unwrap();
   });
 
   // share the current runtime with Tauri
+  // Here https://github.com/tauri-apps/tauri/discussions/4191#discussioncomment-2833069
+  // For more info
   tauri::async_runtime::set(tokio::runtime::Handle::current());
 
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![get_image_raw_data])
+    //.invoke_handler(tauri::generate_handler![get_image_raw_data])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
-// basic handler that responds with a static string
+// Read image and returns it through the http bridge
 async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
 
   let frame_number = payload.frame_number;
@@ -119,7 +73,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   // Number pf pads (0) for the image number.
   let n_pads = 3;
 
-  println!("{}x{}", canvas_w, canvas_h);
+  println!("# Canva's size is {}x{}", canvas_w, canvas_h);
 
   // TODO: Make sure that this number does not lead to a security issue.
   // Set the image to load
@@ -137,7 +91,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   let img = img.thumbnail(canvas_w, canvas_h);
   
   // The dimensions method returns the images width and height.
-  println!("dimensions {:?}", img.dimensions());
+  println!("# Returned dimensions are {:?}", img.dimensions());
 
   // The color method returns the image's `ColorType`.
   //println!("{:?}", img.color());
@@ -160,7 +114,6 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   //   2- Current frame number / image number
   //   3- The size to be display on the canvas
   // }
-  //Ok((img_raw_data, frame_number, img.dimensions()))
 
   let image_r = ImageResult {
     image_raw_data: img_raw_data,
@@ -169,8 +122,6 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   };
 
   Ok( (StatusCode::OK, Json(image_r)) )
-  //Ok(23)
-  //(StatusCode::OK, format!("YES!"))
 }
 
 #[derive(Deserialize)]
@@ -180,8 +131,6 @@ struct ImageQuery {
   canvas_h: u32,
 }
 
-// (Vec<u8>, u32, (u32, u32))
-// Ok((img_raw_data, frame_number, img.dimensions()))
 #[derive(Serialize)]
 struct ImageResult {
   image_raw_data: Vec<u8>,
