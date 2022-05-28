@@ -58,13 +58,14 @@ async fn get_image_raw_data(frame_number: u32, canvas_w: u32, canvas_h: u32) -> 
 
 use axum::{
   routing::{get},
-  http::StatusCode,
+  http::{StatusCode, Method, HeaderValue},
   Json, Router, 
   extract::Query
 };
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use image::GenericImageView;
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() {
@@ -74,7 +75,19 @@ async fn main() {
     let app = Router::new()
     // `GET /` goes to `root`
     .route("/", get(|| async { "ViewFX" }))
-    .route("/image_raw_data", get(http_get_image_raw_data));
+    .route("/image_raw_data", get(http_get_image_raw_data))
+    .layer(
+      // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
+      // and https://github.com/tokio-rs/axum/blob/main/examples/cors/src/main.rs
+      // for more details
+      //
+      // pay attention that for some request types like posting content-type: application/json
+      // it is required to add ".allow_headers([http::header::CONTENT_TYPE])"
+      // or see this issue https://github.com/tokio-rs/axum/issues/849
+      CorsLayer::new()
+      .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
+      .allow_methods([Method::GET]),
+    );
   
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
