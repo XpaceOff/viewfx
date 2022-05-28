@@ -13,10 +13,19 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use image::GenericImageView;
 use tower_http::cors::CorsLayer;
+use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
 // Make the main function Async with Tokio
 #[tokio::main]
 async fn main() {
+
+  let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+  let close = CustomMenuItem::new("close".to_string(), "Close");
+  let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
+  let menu = Menu::new()
+    //.add_native_item(MenuItem::Copy)
+    //.add_item(CustomMenuItem::new("hide", "Hide"))
+    .add_submenu(submenu);
 
   // Create a new thread that will run the backend-api/http-bridge
   // to load Images. This solve the bottleneck on Tauri's IPC
@@ -58,6 +67,7 @@ async fn main() {
   tauri::async_runtime::set(tokio::runtime::Handle::current());
 
   tauri::Builder::default()
+    .menu(menu)
     //.invoke_handler(tauri::generate_handler![get_image_raw_data])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
