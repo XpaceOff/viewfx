@@ -2,6 +2,7 @@
 	import VideoCanvas from './VideoCanvas.svelte';
 	import Bar from './bar.svelte';
 	import Fps from './FPS.svelte';
+	import '@fortawesome/fontawesome-free/js/all';
 	
 	//let newImg = imagedata_to_image(currentImageData);
 
@@ -21,7 +22,7 @@
 			 <VideoCanvas></VideoCanvas> 
 			<Fps></Fps>
 		</div>
-		<div class="flex w-full h-24 bg-zinc-800 pt-2">
+		<div class="flex w-full h-32 bg-zinc-800 pt-2">
 			<Bar></Bar>
 		</div>
 	</div>
