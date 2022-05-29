@@ -1,10 +1,18 @@
 <script>
-    import { isVideoPaused } from './stores';
+    import { isVideoPaused, videoCurrentFrame, videoStartFrame, videoTotalFrameLength } from './stores';
     import StdButton01 from './Playback/Buttons/StdButton01.svelte';
     import PlayButton from './Playback/Buttons/PlayButton.svelte';
 
     function updatePlayStatus(){
         $isVideoPaused = !($isVideoPaused);
+    }
+
+    function nextFrame(){
+        if ($isVideoPaused){
+            if ( $videoCurrentFrame < ($videoStartFrame + $videoTotalFrameLength - 1) ){
+                $videoCurrentFrame = $videoCurrentFrame + 1;
+            }
+        }
     }
 </script>
 
@@ -18,7 +26,7 @@
         <PlayButton on:click={ updatePlayStatus } isPaused={ $isVideoPaused }></PlayButton>
     
         <!-- Next Button-->
-        <StdButton01 cssIcon={"fa-forward-step"}></StdButton01>
+        <StdButton01 on:click={ nextFrame } cssIcon={"fa-forward-step"}></StdButton01>
 
     </div>
 </div>

@@ -13,6 +13,9 @@ export const barCurrentFrame = writable([]);
 // Total of frames in video
 export const videoTotalFrameLength = writable(0);
 
+// Start frame of the video
+export const videoStartFrame = writable(0);
+
 // Video's current frame
 // Frame that is selected or displayed at the time
 export const videoCurrentFrame = writable(0);

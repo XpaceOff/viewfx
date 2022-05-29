@@ -1,7 +1,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused } from './stores'
+    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame } from './stores'
     import axios from "axios";
 
     // Images variables
@@ -9,8 +9,9 @@
     let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
-    $videoTotalFrameLength = 3;
     let framesCached = 0;
+    $videoTotalFrameLength = 24;
+    $videoStartFrame = 0;
 
     // DOM obj variables
 	let canvas;
