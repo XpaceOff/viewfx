@@ -67,8 +67,8 @@ async fn main() {
   tauri::async_runtime::set(tokio::runtime::Handle::current());
 
   tauri::Builder::default()
-    .menu(menu)
-    //.invoke_handler(tauri::generate_handler![get_image_raw_data])
+    //.menu(menu)
+    //.invoke_handler(tauri::generate_handler![close_splashscreen])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

@@ -1,7 +1,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame } from './stores'
+    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused } from './stores'
     import axios from "axios";
 
     // Images variables
@@ -9,7 +9,7 @@
     let rawImageFramesOrder = [];
 	let rawImagesCounter = 0;
 
-    $videoTotalFrameLength = 24;
+    $videoTotalFrameLength = 3;
     let framesCached = 0;
 
     // DOM obj variables
@@ -110,13 +110,16 @@
     
                 context.putImageData(currentImageData, 0, 0);
                 lastFrameTime = time;
-                 
+
             }
 
-            if ($videoCurrentFrame == $videoTotalFrameLength - 1){
-                $videoCurrentFrame = 0;
-            } else {
-                $videoCurrentFrame = $videoCurrentFrame + 1;
+            // If player is not paused inc the frame number
+            if (!($isVideoPaused)){
+                if ($videoCurrentFrame == $videoTotalFrameLength - 1){
+                    $videoCurrentFrame = 0;
+                } else {
+                    $videoCurrentFrame = $videoCurrentFrame + 1;
+                }
             }
 
 		}

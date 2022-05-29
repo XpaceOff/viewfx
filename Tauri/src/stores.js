@@ -16,3 +16,7 @@ export const videoTotalFrameLength = writable(0);
 // Video's current frame
 // Frame that is selected or displayed at the time
 export const videoCurrentFrame = writable(0);
+
+// Pause Status
+// If off then video plays
+export const isVideoPaused = writable(true);

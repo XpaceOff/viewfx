@@ -1,9 +1,10 @@
 <script>
+    import VideoControlArea from './VideoControlArea.svelte';
     import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame } from './stores'
 </script>
 
 <div class="flex flex-col w-full h-full">
-    <div class="flex w-full h-2/4 py-0.5">
+    <div class="flex w-full h-2/6 py-0.5">
         <div class="flex w-full h-full bg-zinc-900  rounded-sm border border-black drop-shadow-lg">
             <div class="flex-none flex-col w-full h-full overflow-hidden">
                 <div class="flex w-full h-4/6 px-2">
@@ -53,7 +54,7 @@
         </div>
 
     </div>
-    <div class="flex w-full h-2/4 bg-zinc-900 rounded-b-lg text-sm">
-        Buttons Area
+    <div class="flex w-full h-4/6 bg-zinc-800 p-1 rounded-b-lg">
+        <VideoControlArea></VideoControlArea>
     </div>
 </div>
