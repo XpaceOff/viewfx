@@ -14,13 +14,21 @@
             }
         }
     }
+
+    function prevFrame(){
+        if ($isVideoPaused){
+            if ( $videoCurrentFrame > $videoStartFrame ){
+                $videoCurrentFrame = $videoCurrentFrame - 1;
+            }
+        }
+    }
 </script>
 
 <div class="flex flex-col w-full h-full">
     <div class="flex flex-row w-full h-full items-start justify-center">
 
         <!-- Prev Button-->
-        <StdButton01 cssIcon={"fa-backward-step"}></StdButton01>
+        <StdButton01 on:click={ prevFrame }  cssIcon={"fa-backward-step"}></StdButton01>
 
         <!-- Play/Pause Button-->
         <PlayButton on:click={ updatePlayStatus } isPaused={ $isVideoPaused }></PlayButton>
