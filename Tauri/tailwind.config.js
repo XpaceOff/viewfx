@@ -3,7 +3,8 @@ module.exports = {
     // files that contain Tailwind class names.
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    extend: {
+    },
   },
   plugins: [],
 }

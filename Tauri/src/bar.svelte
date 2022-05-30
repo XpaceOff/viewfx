@@ -7,7 +7,7 @@
 
 <div class="flex flex-col w-full h-full">
     <div class="flex w-full h-2/6 py-0.5">
-        <div class="flex w-12 h-full">.</div>
+        <div class="flex w-12 h-full select-none">.</div>
 
         <div class="flex w-full h-full bg-zinc-900  rounded-sm border border-black drop-shadow-lg">
             <div class="flex-none flex-col w-full h-full overflow-hidden">
@@ -16,7 +16,7 @@
                 <div class="flex w-full h-4/6 px-2">
                     {#each $barFrameCacheStatus as frameNumber, i}
                         <div class="flex w-full items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}">
-                            <div class=" -ml-1">{i}</div>
+                            <div class=" -ml-1 select-none">{i}</div>
                         </div>
                     {/each}
                 </div>
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div class="flex w-12 h-full">.</div>
+        <div class="flex w-12 h-full select-none">.</div>
 
     </div>
     <div class="flex w-full h-4/6 bg-zinc-800 p-1 rounded-b-lg">
