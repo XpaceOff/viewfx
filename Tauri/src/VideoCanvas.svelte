@@ -10,7 +10,7 @@
 	let rawImagesCounter = 0;
 
     let framesCached = 0;
-    $videoTotalFrameLength = 3;
+    $videoTotalFrameLength = 2;
     $videoStartFrame = 0;
 
     // DOM obj variables

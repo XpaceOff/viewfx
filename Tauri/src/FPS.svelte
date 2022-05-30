@@ -22,7 +22,7 @@
     requestAnimationFrame(fpsCalculation);
 </script>
 
-<div class="absolute top-0 left-0">
+<div class="absolute top-9 left-2 opacity-50 select-none">
     <h3 class="h3">
         {text}
     </h3>

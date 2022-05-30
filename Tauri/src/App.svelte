@@ -1,5 +1,6 @@
 <script>
 	import VideoCanvas from './VideoCanvas.svelte';
+	import UpperSection from './UpperSection.svelte';
 	import Bar from './bar.svelte';
 	import Fps from './FPS.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
@@ -18,8 +19,11 @@
 
 <main class="h-full w-full overflow-hidden">
 	<div class="flex flex-col w-full h-full overflow-hidden">
+		<div class="flex w-full h-6">
+			<UpperSection></UpperSection>
+		</div>
 		<div class="flex w-full h-full items-center justify-center bg-zinc-900 my-1">
-			 <VideoCanvas></VideoCanvas> 
+			<VideoCanvas></VideoCanvas> 
 			<Fps></Fps>
 		</div>
 		<div class="flex w-full h-32 bg-zinc-800 pt-2">
