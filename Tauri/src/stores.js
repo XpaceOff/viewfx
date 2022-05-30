@@ -23,3 +23,9 @@ export const videoCurrentFrame = writable(0);
 // Pause Status
 // If off then video plays
 export const isVideoPaused = writable(true);
+
+// Modal Status
+// if tree a Modal is open
+export const isModalActive = writable(false);
+
+export const modalName = writable(""); // Modal Tittle 

@@ -1,6 +1,7 @@
 <script>
 	import VideoCanvas from './VideoCanvas.svelte';
 	import UpperSection from './UpperSection.svelte';
+	import StdModalContainer from './Modal/StdModalContainer.svelte';
 	import Bar from './bar.svelte';
 	import Fps from './FPS.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
@@ -17,7 +18,9 @@
 	console.log(name);
 </script>
 
-<main class="h-full w-full overflow-hidden">
+<main class=" h-full w-full overflow-hidden">
+	<StdModalContainer></StdModalContainer>
+	
 	<div class="flex flex-col w-full h-full overflow-hidden">
 		<div class="flex w-full h-6">
 			<UpperSection></UpperSection>

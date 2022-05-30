@@ -9,7 +9,7 @@
     <div class="flex w-full h-2/6 py-0.5">
         <div class="flex w-12 h-full select-none">.</div>
 
-        <div class="flex w-full h-full bg-zinc-900  rounded-sm border border-black drop-shadow-lg">
+        <div class="flex w-full h-full bg-zinc-900  rounded-sm border border-black/10 drop-shadow-lg">
             <div class="flex-none flex-col w-full h-full overflow-hidden">
 
                 <!-- Frame Numbers -->
