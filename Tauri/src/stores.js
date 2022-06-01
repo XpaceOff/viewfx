@@ -26,6 +26,10 @@ export const isVideoPaused = writable(true);
 
 // Modal Status
 // if tree a Modal is open
-export const isModalActive = writable(false);
+export const isModalActive = writable(true);
 
-export const modalName = writable(""); // Modal Tittle 
+export const modalTittle = writable(""); // Modal Tittle
+
+export const modalSelectedDirPath = writable("");   // Current directory
+export const modalListOfFiles = writable("");       // List Of files in the current directory
+export const modalListOfFilesError = writable("");  // Error if problem with current directory
