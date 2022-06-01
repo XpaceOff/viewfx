@@ -1,17 +1,20 @@
 <script>
-    import { isModalActive } from "./stores";
+    import { isModalActive, modalTittle } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
     import EmptySpace01 from "./UpperSide/EmptySpace01.svelte";
+    import LoadFileModal from "./Modal/LoadFileModal.svelte";
 
-    function openModal(){
+    function openModalLoadFile(){
         $isModalActive = true;
+        $modalTittle = "Load File";
     }
 </script>
 
 <div class="flex flex-row w-full h-full px-2 py-1 items-center justify-between">
+    <LoadFileModal></LoadFileModal>
     <div class="flex flex-row h-full items-center">
-        <UpStdButtonTwoIco on:click={ openModal } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
+        <UpStdButtonTwoIco on:click={ openModalLoadFile } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
         <UpStdButtonTwoIco cssIcon01={"fa-photo-film"} cssIcon02={"fa-b"}></UpStdButtonTwoIco>
         <EmptySpace01></EmptySpace01>
         <UpStdButton cssIcon={"fa-photo-film"}></UpStdButton>
