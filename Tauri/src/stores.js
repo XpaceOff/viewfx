@@ -3,6 +3,9 @@
 import { writable } from 'svelte/store';
 
 
+// Canvas size [x, y]
+export const canvasSize = writable([0, 0]);
+
 // 0: non-cached
 // 1: caching
 // 2: cached
@@ -31,5 +34,6 @@ export const isModalActive = writable(true);
 export const modalTittle = writable(""); // Modal Tittle
 
 export const modalSelectedDirPath = writable("");   // Current directory
+export const modalSelectedMedia = writable("");     // Selected media to import
 export const modalListOfFiles = writable("");       // List Of files in the current directory
 export const modalListOfFilesError = writable("");  // Error if problem with current directory

@@ -1,7 +1,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame } from './stores'
+    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize } from './stores'
     import axios from "axios";
 
     // Images variables
@@ -20,8 +20,6 @@
     // Sizes 
 	let imgW = 0;
 	let imgH = 0;
-    let canvasW = 0;
-    let canvasH = 0;
 
     // 
     let frameNumber = 0;
@@ -35,8 +33,12 @@
     onMount(() => {
 		// prepare canvas stores
 		context = canvas.getContext('2d');
-        canvasW = Math.floor(canvas.getBoundingClientRect().width);
-        canvasH = Math.floor(canvas.getBoundingClientRect().height);
+
+        // Set Canva's size when mounted
+        $canvasSize = [
+            Math.floor(canvas.getBoundingClientRect().width),
+            Math.floor(canvas.getBoundingClientRect().height)
+        ];
 
         startCaching();
         updateCanvas();
@@ -66,8 +68,8 @@
                // },
                 params: {
                     frame_number: frameNumber,
-                    canvas_w: canvasW,
-                    canvas_h: canvasH
+                    canvas_w: $canvasSize[0],
+                    canvas_h: $canvasSize[1]
                 }
             })
             .then(function (data_from_rust) {
