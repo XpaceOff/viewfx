@@ -1,16 +1,13 @@
 <script>
-    import { invoke } from '@tauri-apps/api/tauri'
-	import { onMount } from 'svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize } from './stores'
+	import { onMount, onDestroy } from 'svelte';
+    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaA } from './stores'
     import axios from "axios";
 
     // Images variables
     let rawImageFrames = [];
     let rawImageFramesOrder = [];
-	let rawImagesCounter = 0;
+    let seqImgPaths = [];
 
-    let framesCached = 0;
-    $videoTotalFrameLength = 2;
     $videoStartFrame = 0;
 
     // DOM obj variables
@@ -24,7 +21,7 @@
     // 
     let frameNumber = 0;
     let frameStart = 1;
-    $videoCurrentFrame = 0;
+    
 
 
     // Time variables
@@ -40,21 +37,59 @@
             Math.floor(canvas.getBoundingClientRect().height)
         ];
 
-        startCaching();
-        updateCanvas();
+        //startCaching();
+        //updateCanvas();
 	});
 
-    async function startCaching(){
-        
-        for (let nFrame=0; nFrame<$videoTotalFrameLength; nFrame++){
-            // Create the array that will contain the right order of frames already cached
-            rawImageFramesOrder.push(0);
+    // Cache Media A once the store `mediaA` is changed
+    const unsubscribe = mediaA.subscribe(value => {
+        // TODO: all this function have to be re-written
+        if (value){
+            let splitedName = value.name.split('.');
 
-            // Update the bar cache status to 0 (non-cached)
-            $barFrameCacheStatus.push(0);
+            // Clear old Data
+            rawImageFramesOrder = [];
+            $barFrameCacheStatus = [];
+            $videoCurrentFrame = 0;
+
+            // If it's a seq
+            if (splitedName.length == 3){
+                let splitedRange = splitedName[1].split('-');
+                if (splitedRange.length == 2){
+                    let imgFrom = parseInt(splitedRange[0]);
+                    let imgTo = parseInt(splitedRange[1]);
+
+                    $videoTotalFrameLength = imgTo-imgFrom;
+
+                    for (let x=0; x<=imgTo-imgFrom; x++){
+                        let preProName = value.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //value.path.replace(/\\/g, '/');
+                        tmpImageName = tmpImageName.replace(/\\/g, '/');
+                        console.log(tmpImageName);
+
+                        // Create the array of image paths
+                        seqImgPaths.push(tmpImageName);
+
+                        // Create the array that will contain the right order of frames already cached
+                        rawImageFramesOrder.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        $barFrameCacheStatus.push(0);
+                    }
+                }
+            }
+
+            startCaching();
+            updateCanvas();
+
         }
+    });
 
-        for (let nFrame=0; nFrame<$videoTotalFrameLength; nFrame++){
+    onDestroy(unsubscribe);
+
+    async function startCaching(){
+
+        for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
             frameNumber = frameStart + nFrame;
 
@@ -65,8 +100,9 @@
                 //headers: {
                 //    "Origin": [""],
 			    //    "Access-Control-Allow-Origin": "*",
-               // },
+                // },
                 params: {
+                    img_full_path: seqImgPaths[nFrame],
                     frame_number: frameNumber,
                     canvas_w: $canvasSize[0],
                     canvas_h: $canvasSize[1]
@@ -78,18 +114,18 @@
                 let r_imgDimensions = data_from_rust.data.img_dimensions;
                 let r_currentFrame = data_from_rust.data.frame_number;
 
+                // Save the images paths into the array
                 rawImageFrames.push([raw, r_imgDimensions]);
 
-                //console.log("Frame", r_currentFrame - frameStart, "in pos", rawImageFrames.length-1, "will be saved in", r_currentFrame - frameStart);
                 // Save the right order of frames
                 rawImageFramesOrder[r_currentFrame - frameStart] = rawImageFrames.length - 1;
 
                 // Update the bar cache status to 1 (cached)
                 $barFrameCacheStatus[r_currentFrame - frameStart] = 2;
-
-                framesCached += 1;
             })
             .catch(function (error) {
+                // TODO: Change bar status to `red` / error
+                // TBD
                 console.log(error);
             });
         }

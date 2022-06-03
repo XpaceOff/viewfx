@@ -2,6 +2,8 @@
 
 import { writable } from 'svelte/store';
 
+// Video A to be loaded or currently loaded.
+export const mediaA = writable(null);
 
 // Canvas size [x, y]
 export const canvasSize = writable([0, 0]);
@@ -28,8 +30,8 @@ export const videoCurrentFrame = writable(0);
 export const isVideoPaused = writable(true);
 
 // Modal Status
-// if tree a Modal is open
-export const isModalActive = writable(true);
+// if true, a Modal is open
+export const isModalActive = writable(false);
 
 export const modalTittle = writable(""); // Modal Tittle
 
