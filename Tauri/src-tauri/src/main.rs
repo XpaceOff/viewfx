@@ -67,18 +67,21 @@ async fn main() {
 // Read image and returns it through the http bridge
 async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
 
+  let img_full_path = payload.img_full_path.clone();
+  
+
   let frame_number = payload.frame_number;
   let canvas_w = payload.canvas_w;
   let canvas_h = payload.canvas_h;
 
   // Number pf pads (0) for the image number.
-  let n_pads = 3;
+  // let n_pads = 3;
 
   println!("# Canva's size is {}x{}", canvas_w, canvas_h);
 
   // TODO: Make sure that this number does not lead to a security issue.
   // Set the image to load
-  let img_name = format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-{:0n_pads$}.jpg", frame_number, n_pads = n_pads);
+  let img_name = img_full_path; //format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-{:0n_pads$}.jpg", frame_number, n_pads = n_pads);
   println!("# HTTP-LOG: {}", img_name);
 
   // Open the image
@@ -127,6 +130,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 
 #[derive(Deserialize)]
 struct ImageQuery {
+  img_full_path: String,
   frame_number: u32,
   canvas_w: u32,
   canvas_h: u32,
