@@ -2,6 +2,7 @@
     import { isModalActive, modalTittle } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
+    import UpButtonText from "./UpperSide/Buttons/UpButtonText.svelte";
     import EmptySpace01 from "./UpperSide/EmptySpace01.svelte";
     import LoadFileModal from "./Modal/LoadFileModal.svelte";
 
@@ -17,6 +18,8 @@
         <UpStdButtonTwoIco on:click={ openModalLoadFile } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
         <UpStdButtonTwoIco cssIcon01={"fa-photo-film"} cssIcon02={"fa-b"}></UpStdButtonTwoIco>
         <EmptySpace01></EmptySpace01>
+        <UpButtonText text={"diff"}></UpButtonText>
+        <UpButtonText text={"A/B"}></UpButtonText>
         <UpStdButton cssIcon={"fa-photo-film"}></UpStdButton>
         <UpStdButton cssIcon={"fa-a"}></UpStdButton>
         <UpStdButton cssIcon={"fa-object-intersect"}></UpStdButton>
