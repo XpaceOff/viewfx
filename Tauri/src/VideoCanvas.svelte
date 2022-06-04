@@ -8,8 +8,6 @@
     let rawImageFramesOrder = [];
     let seqImgPaths = [];
 
-    $videoStartFrame = 0;
-
     // DOM obj variables
 	let canvas;
 	let context;
@@ -17,12 +15,6 @@
     // Sizes 
 	let imgW = 0;
 	let imgH = 0;
-
-    // 
-    let frameNumber = 0;
-    let frameStart = 1;
-    
-
 
     // Time variables
 	let lastFrameTime = 0;
@@ -60,8 +52,9 @@
                     let imgTo = parseInt(splitedRange[1]);
 
                     $videoTotalFrameLength = imgTo-imgFrom;
+                    $videoStartFrame = imgFrom;
 
-                    for (let x=0; x<=imgTo-imgFrom; x++){
+                    for (let x=0; x<=$videoTotalFrameLength; x++){
                         let preProName = value.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
                         let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //value.path.replace(/\\/g, '/');
                         tmpImageName = tmpImageName.replace(/\\/g, '/');
@@ -76,6 +69,7 @@
                         // Update the bar cache status to 0 (non-cached)
                         $barFrameCacheStatus.push(0);
                     }
+                    console.log("cacheLength", $barFrameCacheStatus.length);
                 }
             }
 
@@ -91,7 +85,7 @@
 
         for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
-            frameNumber = frameStart + nFrame;
+            let frameNumber = $videoStartFrame + nFrame;
 
             // Update the bar cache status to 1 (caching)
             $barFrameCacheStatus[nFrame] = 1;
@@ -118,10 +112,10 @@
                 rawImageFrames.push([raw, r_imgDimensions]);
 
                 // Save the right order of frames
-                rawImageFramesOrder[r_currentFrame - frameStart] = rawImageFrames.length - 1;
+                rawImageFramesOrder[r_currentFrame - $videoStartFrame] = rawImageFrames.length - 1;
 
                 // Update the bar cache status to 1 (cached)
-                $barFrameCacheStatus[r_currentFrame - frameStart] = 2;
+                $barFrameCacheStatus[r_currentFrame - $videoStartFrame] = 2;
             })
             .catch(function (error) {
                 // TODO: Change bar status to `red` / error
