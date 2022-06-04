@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported } from './stores'
+    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB } from './stores'
     import axios from "axios";
 
     // Images variables
@@ -109,20 +109,23 @@
     onDestroy(unsubscribe);
 
     async function startCaching(){
+        let cMediaSlot = $mediaToBeImported;
 
         for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
             let frameNumber = $videoStartFrame + nFrame;
             let seqImgPaths = null;
 
-            if ($mediaToBeImported == 'A'){
+            if (cMediaSlot == 'A'){
+                console.log("Caching plate A ", nFrame);
                 // Update the bar cache status to 1 (caching)
                 $barFrameCacheStatusA[nFrame] = 1;
 
                 seqImgPaths = seqImgPathsA;
             }
 
-            if ($mediaToBeImported == 'B'){
+            if (cMediaSlot == 'B'){
+                console.log("Caching plate B ", nFrame);
                 // Update the bar cache status to 1 (caching)
                 $barFrameCacheStatusB[nFrame] = 1;
 
@@ -148,7 +151,7 @@
                 let r_imgDimensions = data_from_rust.data.img_dimensions;
                 let r_currentFrame = data_from_rust.data.frame_number;
 
-                if ($mediaToBeImported == 'A'){
+                if (cMediaSlot == 'A'){
                     // Save the images paths into the array
                     rawImageFramesA.push([raw, r_imgDimensions]);
     
@@ -159,7 +162,7 @@
                     $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
                 }
 
-                if ($mediaToBeImported == 'B'){
+                if (cMediaSlot == 'B'){
                     // Save the images paths into the array
                     rawImageFramesB.push([raw, r_imgDimensions]);
     
@@ -186,21 +189,38 @@
             // Update the canvas every X frames per second 
             if (time > lastFrameTime + 41.66) {
                 //console.log($barFrameCacheStatusA[$videoCurrentFrame]);
-                
-                // Update canvas if the image is cached
-                if ($barFrameCacheStatusA[$videoCurrentFrame] == 2){
-                    //console.log($videoCurrentFrame, "printed ! ");
-                    // TODO: Get the image size and update the variables
-                    imgW = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][0];
-                    imgH = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][1];
-    
-                    let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
+
+                if ($imgDrawOnCanvasIsA){
+                    // Update canvas if the image is cached
+                    if ($barFrameCacheStatusA[$videoCurrentFrame] == 2){
+                        //console.log($videoCurrentFrame, "printed ! ");
+                        // TODO: Get the image size and update the variables
+                        imgW = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][0];
+                        imgH = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][1];
         
-                    context.putImageData(currentImageData, 0, 0);
-                    lastFrameTime = time;
-    
+                        let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
+            
+                        context.putImageData(currentImageData, 0, 0);
+                        lastFrameTime = time;
+        
+                    }
                 }
-    
+
+                if ($imgDrawOnCanvasIsB){
+                    // Update canvas if the image is cached
+                    if ($barFrameCacheStatusB[$videoCurrentFrame] == 2){
+                        // TODO: Get the image size and update the variables
+                        imgW = rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][1][0];
+                        imgH = rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][1][1];
+        
+                        let currentImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
+            
+                        context.putImageData(currentImageData, 0, 0);
+                        lastFrameTime = time;
+        
+                    }
+                }
+                
                 // If player is not paused inc the frame number
                 if (!($isVideoPaused)){
                     if ($videoCurrentFrame == $videoTotalFrameLength - 1){

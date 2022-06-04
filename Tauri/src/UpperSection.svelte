@@ -1,5 +1,5 @@
 <script>
-    import { isModalActive, modalTittle, mediaToBeImported } from "./stores";
+    import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
     import UpButtonText from "./UpperSide/Buttons/UpButtonText.svelte";
@@ -27,8 +27,23 @@
         <EmptySpace01></EmptySpace01>
         <UpButtonText text={"diff"}></UpButtonText>
         <UpButtonText text={"A/B"}></UpButtonText>
+        <UpStdButton
+            isPress={$imgDrawOnCanvasIsA}
+            cssIcon={"fa-a"}
+            on:click={() => {
+                $imgDrawOnCanvasIsA = true;
+                $imgDrawOnCanvasIsB = false;
+            }}
+        />
+        <UpStdButton
+            isPress={$imgDrawOnCanvasIsB}
+            cssIcon={"fa-b"}
+            on:click={() => {
+                $imgDrawOnCanvasIsA = false;
+                $imgDrawOnCanvasIsB = true;
+            }}
+        />
         <UpStdButton cssIcon={"fa-photo-film"}></UpStdButton>
-        <UpStdButton cssIcon={"fa-a"}></UpStdButton>
         <UpStdButton cssIcon={"fa-object-intersect"}></UpStdButton>
     </div>
     <div class="flex flex-row h-full items-center">

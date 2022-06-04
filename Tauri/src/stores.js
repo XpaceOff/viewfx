@@ -5,6 +5,11 @@ import { writable } from 'svelte/store';
 
 export const mediaToBeImported = writable("");
 
+// This two variables show which img is shown on canvas
+// if it's A then B have to be false
+export const imgDrawOnCanvasIsA = writable(true);
+export const imgDrawOnCanvasIsB = writable(false);
+
 // Video to be loaded or already loaded
 // [A, B]
 // If any is not null it is because that media 
