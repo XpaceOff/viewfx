@@ -2,8 +2,14 @@
 
 import { writable } from 'svelte/store';
 
-// Video A to be loaded or currently loaded.
-export const mediaA = writable(null);
+
+export const mediaToBeImported = writable("");
+
+// Video to be loaded or already loaded
+// [A, B]
+// If any is not null it is because that media 
+// is loaded
+export const mediaSlot = writable([null, null]);
 
 // Canvas size [x, y]
 export const canvasSize = writable([0, 0]);
@@ -11,7 +17,8 @@ export const canvasSize = writable([0, 0]);
 // 0: non-cached
 // 1: caching
 // 2: cached
-export const barFrameCacheStatus = writable([]);
+export const barFrameCacheStatusA = writable([]);
+export const barFrameCacheStatusB = writable([]);
 
 export const barCurrentFrame = writable([]);
 
@@ -36,6 +43,5 @@ export const isModalActive = writable(false);
 export const modalTittle = writable(""); // Modal Tittle
 
 export const modalSelectedDirPath = writable("");   // Current directory
-export const modalSelectedMedia = writable("");     // Selected media to import
 export const modalListOfFiles = writable("");       // List Of files in the current directory
 export const modalListOfFilesError = writable("");  // Error if problem with current directory

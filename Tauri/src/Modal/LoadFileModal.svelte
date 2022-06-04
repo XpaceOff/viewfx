@@ -1,6 +1,6 @@
 <script>
     import { fs } from "@tauri-apps/api"
-    import { modalSelectedDirPath, modalSelectedMedia, mediaA, isModalActive, modalListOfFiles, modalListOfFilesError } from "../stores";
+    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported } from "../stores";
     import StdModalContainer from "./StdModalContainer.svelte";
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
     import { getQuickAccessDirs } from "../dirFunctions/quickAccess"
@@ -128,7 +128,6 @@
                                     on:click={() =>{
                                         selectedFileIndex = i;
                                         selectedFileObj = nFile;
-                                        $modalSelectedMedia = nFile.path;
                                         console.log("Selected: ", nFile);
                                         
                                     }}
@@ -153,10 +152,20 @@
             <div class="flex w-4/12 h-full items-center justify-end px-2">
                 <button
                     on:click={() => {
-                        $mediaA = selectedFileObj;  // Cache new Media A
-                        $isModalActive = false;     // Close Modal
 
+                        if ($mediaToBeImported == 'A'){
+                            $mediaSlot[0] = selectedFileObj;  // Cache new media A
+                            console.log($mediaSlot);
+                            
+                        }
+
+                        if ($mediaToBeImported == 'B'){
+                            $mediaSlot[1] = selectedFileObj;  // Cache new media B
+                        }
+                        
                         // TODO: reset all modal variables to default.
+                        $isModalActive = false;     // Close Modal
+                        selectedFileObj = null;     // de-select file
                     }}
                     disabled={ selectedFileIndex == -1} 
                     class="flex w-2/4 h-7 items-center justify-center px-2 bg-zinc-700 rounded-md text-zinc-300 hover:bg-sky-600 select-none border-none disabled:opacity-50 disabled:bg-zinc-700">

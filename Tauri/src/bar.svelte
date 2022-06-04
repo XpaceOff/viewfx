@@ -1,7 +1,7 @@
 <script>
     import VideoControlArea from './VideoControlArea.svelte';
     import CacheBarUnit from './Playback/Bar/CacheBarUnit.svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, videoStartFrame } from './stores'
+    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, videoStartFrame } from './stores'
     
 </script>
 
@@ -14,7 +14,7 @@
 
                 <!-- Frame Numbers -->
                 <div class="flex w-full h-4/6 px-2">
-                    {#each $barFrameCacheStatus as frameNumber, i}
+                    {#each $barFrameCacheStatusA as frameNumber, i}
                         <div class="flex w-full items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}">
                             <div class=" -ml-1 select-none">{i+$videoStartFrame}</div>
                         </div>
@@ -25,16 +25,29 @@
                 <div class="flex flex-col w-full h-2/6">
 
                     <!-- Frame lines -->
-                    <div class="flex w-full h-5/6 px-2">
-                        {#each $barFrameCacheStatus as frameNumber, i}
+                    <div class="flex w-full h-full px-2">
+                        {#each $barFrameCacheStatusA as frameNumber, i}
                             <div class="flex w-full"></div>
                             <div class="flex w-full border-l"></div>
                         {/each}
                     </div>
 
                     <!-- Cache progress bar -->
-                    <div class="flex flex-row w-full h-1/6 px-2 opacity-90">
-                        {#each $barFrameCacheStatus as cFrameCacheStatus, i}
+                    <div class="flex flex-row w-full h-[1px] min-h-0 px-2 opacity-90">
+                        {#each $barFrameCacheStatusA as cFrameCacheStatus, i}
+                            {#if i==0}
+                                <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
+                            {:else if i==$videoTotalFrameLength-1}
+                                <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
+                            {:else}
+                                <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
+                            {/if}
+                        {/each}
+                    </div>
+
+                    <!-- Cache progress bar B -->
+                    <div class="flex flex-row w-full h-[1px] min-h-0 px-2 opacity-90">
+                        {#each $barFrameCacheStatusB as cFrameCacheStatus, i}
                             {#if i==0}
                                 <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
                             {:else if i==$videoTotalFrameLength-1}

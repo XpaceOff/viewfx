@@ -32,7 +32,7 @@ export default () => {
             rawImageFramesOrder[data_from_rust[1] - frameStart] = rawImageFrames.length - 1;
 
             // Update the bar cache status to 1 (cached)
-            $barFrameCacheStatus[data_from_rust[1] - frameStart] = 2;
+            $barFrameCacheStatusA[data_from_rust[1] - frameStart] = 2;
 
             framesCached += 1;
         })

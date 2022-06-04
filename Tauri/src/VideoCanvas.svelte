@@ -1,12 +1,16 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-    import { barFrameCacheStatus, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaA } from './stores'
+    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported } from './stores'
     import axios from "axios";
 
     // Images variables
-    let rawImageFrames = [];
-    let rawImageFramesOrder = [];
-    let seqImgPaths = [];
+    let rawImageFramesA = [];
+    let rawImageFramesOrderA = [];
+    let seqImgPathsA = [];
+
+    let rawImageFramesB = [];
+    let rawImageFramesOrderB = [];
+    let seqImgPathsB = [];
 
     // DOM obj variables
 	let canvas;
@@ -29,20 +33,31 @@
             Math.floor(canvas.getBoundingClientRect().height)
         ];
 
-        //startCaching();
-        //updateCanvas();
+        updateCanvas();
 	});
 
-    // Cache Media A once the store `mediaA` is changed
-    const unsubscribe = mediaA.subscribe(value => {
+    // Cache Media once `mediaSlot` is changed
+    const unsubscribe = mediaSlot.subscribe(value => {
         // TODO: all this function have to be re-written
-        if (value){
-            let splitedName = value.name.split('.');
+        if ((value[0] || value[1]) && $mediaToBeImported != ""){
+            let currentMedia = null;
+
+            if ($mediaToBeImported == 'A') currentMedia = value[0];
+            if ($mediaToBeImported == 'B') currentMedia = value[1];
+
+            let splitedName = currentMedia.name.split('.');
 
             // Clear old Data
-            rawImageFramesOrder = [];
-            $barFrameCacheStatus = [];
-            $videoCurrentFrame = 0;
+            if ($mediaToBeImported == 'A'){
+                rawImageFramesOrderA = [];
+                $barFrameCacheStatusA = [];
+                $videoCurrentFrame = 0;
+            }
+
+            if ($mediaToBeImported == 'B'){
+                rawImageFramesOrderB = [];
+                $barFrameCacheStatusB = [];
+            }
 
             // If it's a seq
             if (splitedName.length == 3){
@@ -55,26 +70,38 @@
                     $videoStartFrame = imgFrom;
 
                     for (let x=0; x<=$videoTotalFrameLength; x++){
-                        let preProName = value.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
-                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //value.path.replace(/\\/g, '/');
+                        let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
                         tmpImageName = tmpImageName.replace(/\\/g, '/');
                         console.log(tmpImageName);
 
-                        // Create the array of image paths
-                        seqImgPaths.push(tmpImageName);
+                        if ($mediaToBeImported == 'A'){
+                            // Create the array of image paths
+                            seqImgPathsA.push(tmpImageName);
+    
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderA.push(0);
+    
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusA.push(0);
+                        }
 
-                        // Create the array that will contain the right order of frames already cached
-                        rawImageFramesOrder.push(0);
+                        if ($mediaToBeImported == 'B'){
+                            // Create the array of image paths
+                            seqImgPathsB.push(tmpImageName);
+    
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderB.push(0);
+    
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusB.push(0);
+                        }
 
-                        // Update the bar cache status to 0 (non-cached)
-                        $barFrameCacheStatus.push(0);
                     }
-                    console.log("cacheLength", $barFrameCacheStatus.length);
                 }
             }
 
             startCaching();
-            updateCanvas();
 
         }
     });
@@ -86,9 +113,22 @@
         for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
             let frameNumber = $videoStartFrame + nFrame;
+            let seqImgPaths = null;
 
-            // Update the bar cache status to 1 (caching)
-            $barFrameCacheStatus[nFrame] = 1;
+            if ($mediaToBeImported == 'A'){
+                // Update the bar cache status to 1 (caching)
+                $barFrameCacheStatusA[nFrame] = 1;
+
+                seqImgPaths = seqImgPathsA;
+            }
+
+            if ($mediaToBeImported == 'B'){
+                // Update the bar cache status to 1 (caching)
+                $barFrameCacheStatusB[nFrame] = 1;
+
+                seqImgPaths = seqImgPathsB;
+            }
+
 
             axios.get('http://localhost:3000/image_raw_data', {
                 //headers: {
@@ -108,14 +148,28 @@
                 let r_imgDimensions = data_from_rust.data.img_dimensions;
                 let r_currentFrame = data_from_rust.data.frame_number;
 
-                // Save the images paths into the array
-                rawImageFrames.push([raw, r_imgDimensions]);
+                if ($mediaToBeImported == 'A'){
+                    // Save the images paths into the array
+                    rawImageFramesA.push([raw, r_imgDimensions]);
+    
+                    // Save the right order of frames
+                    rawImageFramesOrderA[r_currentFrame - $videoStartFrame] = rawImageFramesA.length - 1;
+    
+                    // Update the bar cache status to 1 (cached)
+                    $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
+                }
 
-                // Save the right order of frames
-                rawImageFramesOrder[r_currentFrame - $videoStartFrame] = rawImageFrames.length - 1;
+                if ($mediaToBeImported == 'B'){
+                    // Save the images paths into the array
+                    rawImageFramesB.push([raw, r_imgDimensions]);
+    
+                    // Save the right order of frames
+                    rawImageFramesOrderB[r_currentFrame - $videoStartFrame] = rawImageFramesB.length - 1;
+    
+                    // Update the bar cache status to 1 (cached)
+                    $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 2;
+                }
 
-                // Update the bar cache status to 1 (cached)
-                $barFrameCacheStatus[r_currentFrame - $videoStartFrame] = 2;
             })
             .catch(function (error) {
                 // TODO: Change bar status to `red` / error
@@ -126,37 +180,41 @@
     }
 
     function updateCanvas(time) {
-        
-        // 24 frames per second (1000/24fps = 41.66):
-        // Update the canvas every X frames per second 
-		if (time > lastFrameTime + 41.66) {
-            //console.log($barFrameCacheStatus[$videoCurrentFrame]);
-            
-            // Update canvas if the image is cached
-            if ($barFrameCacheStatus[$videoCurrentFrame] == 2){
-                //console.log($videoCurrentFrame, "printed ! ");
-                // TODO: Get the image size and update the variables
-                imgW = rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][1][0];
-                imgH = rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][1][1];
 
-                let currentImageData = new ImageData(rawImageFrames[rawImageFramesOrder[$videoCurrentFrame]][0], imgW, imgH);
+        if (rawImageFramesOrderA != []){
+            // 24 frames per second (1000/24fps = 41.66):
+            // Update the canvas every X frames per second 
+            if (time > lastFrameTime + 41.66) {
+                //console.log($barFrameCacheStatusA[$videoCurrentFrame]);
+                
+                // Update canvas if the image is cached
+                if ($barFrameCacheStatusA[$videoCurrentFrame] == 2){
+                    //console.log($videoCurrentFrame, "printed ! ");
+                    // TODO: Get the image size and update the variables
+                    imgW = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][0];
+                    imgH = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][1];
     
-                context.putImageData(currentImageData, 0, 0);
-                lastFrameTime = time;
-
-            }
-
-            // If player is not paused inc the frame number
-            if (!($isVideoPaused)){
-                if ($videoCurrentFrame == $videoTotalFrameLength - 1){
-                    $videoCurrentFrame = 0;
-                } else {
-                    $videoCurrentFrame = $videoCurrentFrame + 1;
+                    let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
+        
+                    context.putImageData(currentImageData, 0, 0);
+                    lastFrameTime = time;
+    
                 }
+    
+                // If player is not paused inc the frame number
+                if (!($isVideoPaused)){
+                    if ($videoCurrentFrame == $videoTotalFrameLength - 1){
+                        $videoCurrentFrame = 0;
+                    } else {
+                        $videoCurrentFrame = $videoCurrentFrame + 1;
+                    }
+                }
+    
             }
+        } 
 
-		}
-		requestAnimationFrame(updateCanvas);
+        // Refresh canvas
+        requestAnimationFrame(updateCanvas);
 	}
 
 </script>
