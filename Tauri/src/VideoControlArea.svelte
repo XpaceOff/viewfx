@@ -17,7 +17,7 @@
 
     function prevFrame(){
         if ($isVideoPaused){
-            if ( $videoCurrentFrame > $videoStartFrame ){
+            if ( ($videoCurrentFrame+$videoStartFrame) > $videoStartFrame ){
                 $videoCurrentFrame = $videoCurrentFrame - 1;
             }
         }
