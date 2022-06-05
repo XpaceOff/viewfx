@@ -1,5 +1,5 @@
 <script>
-    import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, mediaSlot } from "./stores";
+    import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, mediaSlot } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
     import UpButtonText from "./UpperSide/Buttons/UpButtonText.svelte";
@@ -34,7 +34,15 @@
                 }
             }}
         />
-        <UpButtonText text={"A/B"}/>
+        <UpButtonText
+            isPress={$imgDrawOnCanvasIsAB}
+            text={"A/B"}
+            on:click={() => {
+                if ($mediaSlot[0] && $mediaSlot[1]){
+                    $imgDrawOnCanvasIsAB = !($imgDrawOnCanvasIsAB);
+                }
+            }}
+        />
         <UpStdButton
             isPress={$imgDrawOnCanvasIsA}
             cssIcon={"fa-a"}

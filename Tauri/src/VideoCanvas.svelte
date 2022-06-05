@@ -1,7 +1,9 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff } from './stores'
+    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
     import axios from "axios";
+
+    export let parentW, parentH;
 
     // Images variables
     let rawImageFramesA = [];
@@ -205,7 +207,22 @@
         
                         let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
             
-                        context.putImageData(currentImageData, 0, 0);
+                        if ($imgDrawOnCanvasIsAB){
+                            let aW = parseInt($abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 ));
+                            if (aW < 0) aW = 0;
+
+                            // Draw Image A
+                            context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
+
+        
+                            currentImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
+                            let bW = parseInt($canvasSize[0]-aW);
+                            // Draw Image B
+                            context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
+                        } else{
+                            context.putImageData(currentImageData, 0, 0);
+                        }
+
 
                         // Diff Code
                         if ($imgDrawOnCanvasIsDiff){

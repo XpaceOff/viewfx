@@ -13,6 +13,11 @@ export const imgDrawOnCanvasIsB = writable(false);
 // difference between A and B
 export const imgDrawOnCanvasIsDiff = writable(false);
 
+// If this is true then canvas will show the 
+// difference between A and B
+export const imgDrawOnCanvasIsAB = writable(false);
+export const abHandlePos = writable(10);
+
 // Video to be loaded or already loaded
 // [A, B]
 // If any is not null it is because that media 

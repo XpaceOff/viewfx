@@ -3,6 +3,7 @@
 	import UpperSection from './UpperSection.svelte';
 	import Bar from './bar.svelte';
 	import Fps from './FPS.svelte';
+	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
 	
 	//let newImg = imagedata_to_image(currentImageData);
@@ -12,6 +13,8 @@
 	//let ratio = Math.min ( imgRatioW, imgRatioH );
 
 	//context.drawImage(newImg, 0, 0, imgW, imgH, (canvasW-imgW*ratio)/2, (canvasH-imgH*ratio)/2, imgW*ratio, imgH*ratio);//, 200, 200);
+
+	let intViewerW, intViewerH;
 
 	export let name;
 	console.log(name);
@@ -23,9 +26,20 @@
 		<div class="flex w-full h-6">
 			<UpperSection></UpperSection>
 		</div>
-		<div class="flex w-full h-full items-center justify-center bg-zinc-900 my-1">
-			<VideoCanvas></VideoCanvas> 
+		<div
+			bind:clientWidth={intViewerW}
+			bind:clientHeight={intViewerH}
+			class="flex w-full h-full items-center justify-center bg-zinc-900 my-1"
+		>
+			<VideoCanvas
+				parentH={intViewerH}
+				parentW={intViewerW}
+			/>
 			<Fps></Fps>
+			<AbSeparator
+				parentH={intViewerH}
+				parentW={intViewerW}
+			/>
 		</div>
 		<div class="flex w-full h-32 bg-zinc-800 pt-2">
 			<Bar></Bar>
