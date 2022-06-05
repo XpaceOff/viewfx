@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB } from './stores'
+    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff } from './stores'
     import axios from "axios";
 
     // Images variables
@@ -11,6 +11,8 @@
     let rawImageFramesB = [];
     let rawImageFramesOrderB = [];
     let seqImgPathsB = [];
+
+    let rawImageFramesDiff = [];
 
     // DOM obj variables
 	let canvas;
@@ -52,11 +54,13 @@
                 rawImageFramesOrderA = [];
                 $barFrameCacheStatusA = [];
                 $videoCurrentFrame = 0;
+                rawImageFramesDiff = [];
             }
 
             if ($mediaToBeImported == 'B'){
                 rawImageFramesOrderB = [];
                 $barFrameCacheStatusB = [];
+                rawImageFramesDiff = [];
             }
 
             // If it's a seq
@@ -84,6 +88,9 @@
     
                             // Update the bar cache status to 0 (non-cached)
                             $barFrameCacheStatusA.push(0);
+
+                            // 
+                            rawImageFramesDiff.push(null);
                         }
 
                         if ($mediaToBeImported == 'B'){
@@ -117,7 +124,6 @@
             let seqImgPaths = null;
 
             if (cMediaSlot == 'A'){
-                console.log("Caching plate A ", nFrame);
                 // Update the bar cache status to 1 (caching)
                 $barFrameCacheStatusA[nFrame] = 1;
 
@@ -125,7 +131,6 @@
             }
 
             if (cMediaSlot == 'B'){
-                console.log("Caching plate B ", nFrame);
                 // Update the bar cache status to 1 (caching)
                 $barFrameCacheStatusB[nFrame] = 1;
 
@@ -201,8 +206,34 @@
                         let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
             
                         context.putImageData(currentImageData, 0, 0);
+
+                        // Diff Code
+                        if ($imgDrawOnCanvasIsDiff){
+
+                            // If the diff image is not cached yet then start the computation
+                            if (rawImageFramesDiff[$videoCurrentFrame] == null){
+                                // 
+                                var imgCopyA = new Image();
+                                imgCopyA.src = canvas.toDataURL();
+    
+                                let diffImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
+                                context.putImageData(diffImageData, 0, 0);
+    
+                                context.globalAlpha = 1;   // amount of FX
+                                context.globalCompositeOperation = "difference";
+                                context.drawImage(imgCopyA, 0, 0);
+                                //context.drawImage(frame, left, top, vidW * scale, vidH * scale);
+
+                                rawImageFramesDiff[$videoCurrentFrame] = new Image();
+                                rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
+
+                            } else{ // If not then just draw it
+                                context.drawImage(rawImageFramesDiff[$videoCurrentFrame], 0, 0);
+                            }
+
+                        }
+
                         lastFrameTime = time;
-        
                     }
                 }
 
@@ -217,7 +248,6 @@
             
                         context.putImageData(currentImageData, 0, 0);
                         lastFrameTime = time;
-        
                     }
                 }
                 

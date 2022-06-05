@@ -1,9 +1,10 @@
 <script>
-    import { fs } from "@tauri-apps/api"
+    import { fs, path } from "@tauri-apps/api"
     import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported } from "../stores";
     import StdModalContainer from "./StdModalContainer.svelte";
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
-    import { getQuickAccessDirs } from "../dirFunctions/quickAccess"
+    import { getQuickAccessDirs } from "../dirFunctions/quickAccess";
+    import { onMount } from 'svelte';
 
     let quickAccessDirectories = getQuickAccessDirs();
     let selectedFileIndex = -1;
@@ -17,6 +18,7 @@
         let seqList = [];
         let imgFilter = /((.png)|(.exr)|(.jpeg)|(.jpg))$/g;
 
+        console.log("Getting: ", $modalSelectedDirPath);
         preList = await fs.readDir($modalSelectedDirPath);
         console.log(preList);
 
@@ -59,9 +61,21 @@
 
         return(rList);
     }
+
     function reloadFiles(){
         currentDirList = cReloadFiles();//fs.readDir($modalSelectedDirPath);
     }
+
+    onMount(() => {
+        // Get Home directory
+        path.homeDir().then((tmpHomeDir) => {
+            console.log("Home dir: ", tmpHomeDir);
+            $modalSelectedDirPath = tmpHomeDir;
+
+            reloadFiles();
+        });
+    })
+
     let currentDirList = cReloadFiles();//fs.readDir($modalSelectedDirPath);
     
 </script>
@@ -91,13 +105,19 @@
                     <p>...waiting</p>
                 {:then qaDirs}
                     {#each qaDirs as qaDir}
-                        <div class="{ qaDir[1] == $modalSelectedDirPath ? 'text-sky-500 bg-zinc-700' : 'text-zinc-400' } flex w-full h-6 mt-1 px-2 items-center hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none">
+                        <div
+                            on:click={() => {
+                                $modalSelectedDirPath = qaDir[1];
+                                reloadFiles();
+                            }}
+                            class="{ qaDir[1] == $modalSelectedDirPath ? 'text-sky-500 bg-zinc-700' : 'text-zinc-400' } flex w-full h-6 mt-1 px-2 items-center hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none"
+                        >
                             <i class="fa-solid fa-folder mr-1"></i>
                             <p>{qaDir[0]}</p>
                         </div>
                     {/each}
                 {:catch error}
-                <!-- TODO: If folder is not found then add the folder but wirh a "lost" icon -->
+                <!-- TODO: If folder is not found then add the folder but with a "lost" icon -->
                     <p class=" text-red-700">{error}</p>
                 {/await}
             </div>

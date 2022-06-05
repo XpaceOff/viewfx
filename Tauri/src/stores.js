@@ -2,13 +2,16 @@
 
 import { writable } from 'svelte/store';
 
-
 export const mediaToBeImported = writable("");
 
-// This two variables show which img is shown on canvas
+// This two variables shows which img is shown on canvas
 // if it's A then B have to be false
 export const imgDrawOnCanvasIsA = writable(true);
 export const imgDrawOnCanvasIsB = writable(false);
+
+// If this is true then canvas will show the 
+// difference between A and B
+export const imgDrawOnCanvasIsDiff = writable(false);
 
 // Video to be loaded or already loaded
 // [A, B]

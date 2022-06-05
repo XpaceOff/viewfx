@@ -1,5 +1,5 @@
 <script>
-    import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB } from "./stores";
+    import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, mediaSlot } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
     import UpButtonText from "./UpperSide/Buttons/UpButtonText.svelte";
@@ -25,8 +25,16 @@
         <UpStdButtonTwoIco on:click={ openModalLoadFileA } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
         <UpStdButtonTwoIco on:click={ openModalLoadFileB } cssIcon01={"fa-photo-film"} cssIcon02={"fa-b"}></UpStdButtonTwoIco>
         <EmptySpace01></EmptySpace01>
-        <UpButtonText text={"diff"}></UpButtonText>
-        <UpButtonText text={"A/B"}></UpButtonText>
+        <UpButtonText
+            isPress={$imgDrawOnCanvasIsDiff}
+            text={"diff"}
+            on:click={() => {
+                if ($mediaSlot[0] && $mediaSlot[1]){
+                    $imgDrawOnCanvasIsDiff = !($imgDrawOnCanvasIsDiff);
+                }
+            }}
+        />
+        <UpButtonText text={"A/B"}/>
         <UpStdButton
             isPress={$imgDrawOnCanvasIsA}
             cssIcon={"fa-a"}
