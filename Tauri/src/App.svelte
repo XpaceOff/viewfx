@@ -5,6 +5,7 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
+	import { mediaSlot } from './stores'
 	
 	//let newImg = imagedata_to_image(currentImageData);
 
@@ -40,6 +41,13 @@
 				parentH={intViewerH}
 				parentW={intViewerW}
 			/>
+
+			{#if !($mediaSlot[0] || $mediaSlot[1])}
+				<div class=" absolute flex w-full h-full items-center justify-center overflow-hidden py-6 select-none opacity-5">
+					<img class=" w-1/3  object-contain z-0" src="ViewFX_v04.png" alt="ViewFX Logo">
+					<div class="absolute w-full h-full z-10"></div>
+				</div>
+			{/if}
 		</div>
 		<div class="flex w-full h-32 bg-zinc-800 pt-2">
 			<Bar></Bar>

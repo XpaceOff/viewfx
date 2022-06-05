@@ -59,8 +59,6 @@
                 $imgDrawOnCanvasIsB = true;
             }}
         />
-        <UpStdButton cssIcon={"fa-photo-film"}></UpStdButton>
-        <UpStdButton cssIcon={"fa-object-intersect"}></UpStdButton>
     </div>
     <div class="flex flex-row h-full items-center">
         <UpStdButton cssIcon={"fa-gear"}></UpStdButton>
