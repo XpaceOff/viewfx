@@ -1,6 +1,4 @@
 <script>
-	import { path } from "@tauri-apps/api"
-	import { modalSelectedDirPath } from "./stores";
 	import VideoCanvas from './VideoCanvas.svelte';
 	import UpperSection from './UpperSection.svelte';
 	import Bar from './bar.svelte';
@@ -17,12 +15,6 @@
 
 	export let name;
 	console.log(name);
-
-	// Get Home directory
-	path.homeDir().then((tmpHomeDir) => {
-		console.log(tmpHomeDir);
-		$modalSelectedDirPath = tmpHomeDir;
-	});
 </script>
 
 <main class=" h-full w-full overflow-hidden">
