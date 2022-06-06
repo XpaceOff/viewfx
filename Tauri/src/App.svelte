@@ -33,7 +33,6 @@
 			class="flex w-full h-full items-center justify-center bg-zinc-900 my-1"
 		>
 			<VideoCanvas
-				parentH={intViewerH}
 				parentW={intViewerW}
 			/>
 			<Fps></Fps>

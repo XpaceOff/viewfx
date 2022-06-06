@@ -30,6 +30,9 @@
             text={"diff"}
             on:click={() => {
                 if ($mediaSlot[0] && $mediaSlot[1]){
+                    if ($imgDrawOnCanvasIsDiff == false)
+                        $imgDrawOnCanvasIsAB = false;
+
                     $imgDrawOnCanvasIsDiff = !($imgDrawOnCanvasIsDiff);
                 }
             }}
@@ -39,6 +42,9 @@
             text={"A/B"}
             on:click={() => {
                 if ($mediaSlot[0] && $mediaSlot[1]){
+                    if ($imgDrawOnCanvasIsAB == false)
+                        $imgDrawOnCanvasIsDiff = false;
+
                     $imgDrawOnCanvasIsAB = !($imgDrawOnCanvasIsAB);
                 }
             }}

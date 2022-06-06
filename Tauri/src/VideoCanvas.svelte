@@ -3,7 +3,7 @@
     import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
     import axios from "axios";
 
-    export let parentW, parentH;
+    export let parentW;
 
     // Images variables
     let rawImageFramesA = [];
@@ -43,6 +43,12 @@
     // Cache Media once `mediaSlot` is changed
     const unsubscribe = mediaSlot.subscribe(value => {
         // TODO: all this function have to be re-written
+
+        // When a plate is selected in the modal, and then clicked the button `import`
+        // this will Update the store $mediaSlot. This store is an array of two values
+        // [mediaA, mediaB]
+
+        // When thre is at least one media to be cached
         if ((value[0] || value[1]) && $mediaToBeImported != ""){
             let currentMedia = null;
 
@@ -55,15 +61,18 @@
             if ($mediaToBeImported == 'A'){
                 rawImageFramesOrderA = [];
                 $barFrameCacheStatusA = [];
-                $videoCurrentFrame = 0;
-                rawImageFramesDiff = [];
+                seqImgPathsA = [];
             }
-
+            
             if ($mediaToBeImported == 'B'){
                 rawImageFramesOrderB = [];
                 $barFrameCacheStatusB = [];
-                rawImageFramesDiff = [];
+                seqImgPathsB = [];
             }
+            
+            $videoCurrentFrame = 0;
+            rawImageFramesDiff = [];
+            
 
             // If it's a seq
             if (splitedName.length == 3){
@@ -79,7 +88,7 @@
                         let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
                         let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
                         tmpImageName = tmpImageName.replace(/\\/g, '/');
-                        console.log(tmpImageName);
+                        //console.log(tmpImageName);
 
                         if ($mediaToBeImported == 'A'){
                             // Create the array of image paths
