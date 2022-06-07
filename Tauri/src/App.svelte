@@ -30,7 +30,7 @@
 		<div
 			bind:clientWidth={intViewerW}
 			bind:clientHeight={intViewerH}
-			class="flex w-full h-full items-center justify-center bg-zinc-900 my-1"
+			class="flex w-full h-full items-center justify-center bg-zinc-900 my-1 overflow-hidden"
 		>
 			<VideoCanvas
 				parentW={intViewerW}
