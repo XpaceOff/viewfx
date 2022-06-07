@@ -186,6 +186,7 @@
                         // TODO: reset all modal variables to default.
                         $isModalActive = false;     // Close Modal
                         selectedFileObj = null;     // de-select file
+                        selectedFileIndex = -1;     // de-select file
                     }}
                     disabled={ selectedFileIndex == -1} 
                     class="flex w-2/4 h-7 items-center justify-center px-2 bg-zinc-700 rounded-md text-zinc-300 hover:bg-sky-600 select-none border-none disabled:opacity-50 disabled:bg-zinc-700">

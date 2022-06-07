@@ -24,6 +24,9 @@
 	let imgW = 0;
 	let imgH = 0;
 
+    let cW = 0;
+    let cH = 0;
+
     // Time variables
 	let lastFrameTime = 0;
 
@@ -148,7 +151,7 @@
                 seqImgPaths = seqImgPathsB;
             }
 
-
+            console.log("First canvas size: ", $canvasSize);
             axios.get('http://localhost:3000/image_raw_data', {
                 //headers: {
                 //    "Origin": [""],
@@ -166,6 +169,9 @@
                 let raw = Uint8ClampedArray.from(data_from_rust.data.image_raw_data);
                 let r_imgDimensions = data_from_rust.data.img_dimensions;
                 let r_currentFrame = data_from_rust.data.frame_number;
+
+                cW = r_imgDimensions[0];
+                cH = r_imgDimensions[1];
 
                 if (cMediaSlot == 'A'){
                     // Save the images paths into the array
@@ -204,12 +210,16 @@
             // 24 frames per second (1000/24fps = 41.66):
             // Update the canvas every X frames per second 
             if (time > lastFrameTime + 41.66) {
-                //console.log($barFrameCacheStatusA[$videoCurrentFrame]);
+
+                $canvasSize = [
+                    Math.floor(canvas.getBoundingClientRect().width),
+                    Math.floor(canvas.getBoundingClientRect().height)
+                ];
 
                 if ($imgDrawOnCanvasIsA){
                     // Update canvas if the image is cached
                     if ($barFrameCacheStatusA[$videoCurrentFrame] == 2){
-                        //console.log($videoCurrentFrame, "printed ! ");
+
                         // TODO: Get the image size and update the variables
                         imgW = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][0];
                         imgH = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][1];
@@ -217,21 +227,31 @@
                         let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
             
                         if ($imgDrawOnCanvasIsAB){
-                            let aW = parseInt($abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 ));
+
+                            let scaleRatio = cW / $canvasSize[0];
+
+                            let aW = $abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 );
+                            aW = parseInt(aW * scaleRatio);
+
                             if (aW < 0) aW = 0;
 
                             // Draw Image A
                             context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
 
-        
                             currentImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
-                            let bW = parseInt($canvasSize[0]-aW);
+                            
+                            let bW = 0;
+                            if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
+                            else bW = parseInt($canvasSize[0] - aW) * scaleRatio;
+
+                            //console.log($abHandlePos, $canvasSize[0], aW, bW);
+                            
                             // Draw Image B
                             context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
                         } else{
                             context.putImageData(currentImageData, 0, 0);
+                            //context.putImageData(currentImageData, 0, 0, 100, 0, imgW, imgH);
                         }
-
 
                         // Diff Code
                         if ($imgDrawOnCanvasIsDiff){
@@ -298,6 +318,6 @@
 <canvas
     bind:this={canvas}
     class="aspect-video h-full"
-    width={imgW}
-    height={imgH}
+    width={cW}
+    height={cH}
 />
