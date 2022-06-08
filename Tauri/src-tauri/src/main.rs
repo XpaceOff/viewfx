@@ -70,7 +70,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 
   let img_full_path = payload.img_full_path.clone();
   
-
+  let load_full_img = payload.load_full_img;
   let frame_number = payload.frame_number;
   let canvas_w = payload.canvas_w;
   let canvas_h = payload.canvas_h;
@@ -87,13 +87,17 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 
   // Open the image
   let img = image::open(img_name);
-  let img = match img {
+  let mut img = match img {
     Ok(tmp_image) => tmp_image,
     Err(_error) => return Err( (StatusCode::NOT_FOUND, format!("Image not found")) ),
   };
 
-  //let img = img.resize(canvas_w, canvas_h, image::imageops::Lanczos3);
-  let img = img.thumbnail(canvas_w, canvas_h);
+  println!("# Original dimensions {:?}", img.dimensions());
+
+  if !load_full_img {
+    //let img = img.resize(canvas_w, canvas_h, image::imageops::Lanczos3);
+    img = img.thumbnail(canvas_w, canvas_h);
+  }
   
   // The dimensions method returns the images width and height.
   println!("# Returned dimensions are {:?}", img.dimensions());
@@ -131,6 +135,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 
 #[derive(Deserialize)]
 struct ImageQuery {
+  load_full_img: bool,
   img_full_path: String,
   frame_number: u32,
   canvas_w: u32,

@@ -5,7 +5,7 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot } from './stores'
+	import { mediaSlot, internalViewwerSize } from './stores'
 	
 	//let newImg = imagedata_to_image(currentImageData);
 
@@ -14,8 +14,6 @@
 	//let ratio = Math.min ( imgRatioW, imgRatioH );
 
 	//context.drawImage(newImg, 0, 0, imgW, imgH, (canvasW-imgW*ratio)/2, (canvasH-imgH*ratio)/2, imgW*ratio, imgH*ratio);//, 200, 200);
-
-	let intViewerW, intViewerH;
 
 	export let name;
 	console.log(name);
@@ -28,17 +26,17 @@
 			<UpperSection></UpperSection>
 		</div>
 		<div
-			bind:clientWidth={intViewerW}
-			bind:clientHeight={intViewerH}
+			bind:clientWidth={$internalViewwerSize[0]}
+			bind:clientHeight={$internalViewwerSize[1]}
 			class="flex w-full h-full items-center justify-center bg-zinc-900 my-1 overflow-hidden"
 		>
 			<VideoCanvas
-				parentW={intViewerW}
+				parentW={$internalViewwerSize[0]}
 			/>
 			<Fps></Fps>
 			<AbSeparator
-				parentH={intViewerH}
-				parentW={intViewerW}
+				parentH={$internalViewwerSize[1]}
+				parentW={$internalViewwerSize[0]}
 			/>
 
 			{#if !($mediaSlot[0] || $mediaSlot[1])}

@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg } from "./stores";
     import axios from "axios";
 
     export let parentW;
@@ -26,6 +27,12 @@
 
     let cW = 0;
     let cH = 0;
+
+    // 
+
+    let initImgWiA = 0;
+    let initImgHeA = 0;
+    let initFrameRange = 0;
 
     // Time variables
 	let lastFrameTime = 0;
@@ -75,7 +82,9 @@
             
             $videoCurrentFrame = 0;
             rawImageFramesDiff = [];
-            
+
+            // Clear canvas 
+            context.clearRect(0, 0, canvas.width, canvas.height);
 
             // If it's a seq
             if (splitedName.length == 3){
@@ -127,7 +136,45 @@
         }
     });
 
-    onDestroy(unsubscribe);
+    // TODO: code for auto recache
+    // This function is executed everytime the window changes size
+    const unsubIntViewerSize = internalViewwerSize.subscribe((interSize) => {
+
+        // If auto-reload is ON
+        if ($isCanvasAutoReload){
+
+            console.log(interSize[0], ">", cW, " || ", interSize[1], '>', cH);
+
+            // Only reload if the win was scale up
+            // and it's no the first cache
+            if ( (interSize[0] > cW) || (interSize[1] > cH) && cW != 0 && cH != 0 ){
+
+                // Re-cache media A if it was loaded previously 
+                if (rawImageFramesA.length > 0 ){
+                    //$mediaToBeImported = 'A';
+
+                    /*for (nFrame in $barFrameCacheStatusA){
+                        $barFrameCacheStatusA[nFrame] = 0;
+                    }*/
+
+                    console.log("Cache A");
+                    //startCaching();
+                }
+                
+                // Re-cache media B if it was loaded previously 
+                if (rawImageFramesB.length > 0){
+                    //$mediaToBeImported = 'B';
+                    console.log("Cache B");
+                    //startCaching();
+                }
+            }
+        }
+    });
+
+    onDestroy(() => {
+        unsubscribe();
+        unsubIntViewerSize();
+    });
 
     async function startCaching(){
         let cMediaSlot = $mediaToBeImported;
@@ -158,6 +205,7 @@
 			    //    "Access-Control-Allow-Origin": "*",
                 // },
                 params: {
+                    load_full_img: $isLoadFullImg,
                     img_full_path: seqImgPaths[nFrame],
                     frame_number: frameNumber,
                     canvas_w: $canvasSize[0],
@@ -202,6 +250,8 @@
                 console.log(error);
             });
         }
+
+        $mediaToBeImported = "";
     }
 
     function updateCanvas(time) {
@@ -307,7 +357,7 @@
                 }
     
             }
-        } 
+        }
 
         // Refresh canvas
         requestAnimationFrame(updateCanvas);

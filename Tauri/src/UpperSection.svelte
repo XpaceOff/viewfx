@@ -1,5 +1,6 @@
 <script>
     import { isModalActive, modalTittle, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, mediaSlot } from "./stores";
+    import { isLoadFullImg } from "./stores";
     import UpStdButton from "./UpperSide/Buttons/UpStdButton.svelte";
     import UpStdButtonTwoIco from "./UpperSide/Buttons/UpStdButtonTwoIco.svelte";
     import UpButtonText from "./UpperSide/Buttons/UpButtonText.svelte";
@@ -23,9 +24,15 @@
     <LoadFileModal></LoadFileModal>
     <div class="flex flex-row h-full items-center">
         <UpStdButtonTwoIco on:click={ openModalLoadFileA } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
-        <UpStdButtonTwoIco on:click={ openModalLoadFileB } cssIcon01={"fa-photo-film"} cssIcon02={"fa-b"}></UpStdButtonTwoIco>
+        <UpStdButtonTwoIco
+            on:click={ openModalLoadFileB }
+            cssIcon01={"fa-photo-film"}
+            cssIcon02={"fa-b"}
+            isDisabled={!($mediaSlot[0])}
+        />
         <EmptySpace01></EmptySpace01>
         <UpButtonText
+            isDisabled={!($mediaSlot[0] && $mediaSlot[1])}
             isPress={$imgDrawOnCanvasIsDiff}
             text={"diff"}
             on:click={() => {
@@ -38,6 +45,7 @@
             }}
         />
         <UpButtonText
+        isDisabled={!($mediaSlot[0] && $mediaSlot[1])}
             isPress={$imgDrawOnCanvasIsAB}
             text={"A/B"}
             on:click={() => {
@@ -58,11 +66,20 @@
             }}
         />
         <UpStdButton
+            isDisabled={!($mediaSlot[1])}
             isPress={$imgDrawOnCanvasIsB}
             cssIcon={"fa-b"}
             on:click={() => {
                 $imgDrawOnCanvasIsA = false;
                 $imgDrawOnCanvasIsB = true;
+            }}
+        />
+        <EmptySpace01></EmptySpace01>
+        <UpStdButton
+            isPress={$isLoadFullImg}
+            cssIcon={"fa-square-full"}
+            on:click={() => {
+                $isLoadFullImg = !($isLoadFullImg);
             }}
         />
     </div>

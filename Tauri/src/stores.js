@@ -58,3 +58,13 @@ export const modalTittle = writable(""); // Modal Tittle
 export const modalSelectedDirPath = writable("");   // Current directory
 export const modalListOfFiles = writable("");       // List Of files in the current directory
 export const modalListOfFilesError = writable("");  // Error if problem with current directory
+
+export const internalViewwerSize = writable([]);
+
+// If this is true then everytime the canvas changes size
+// the media will be re-cache 
+export const isCanvasAutoReload = writable(false);
+
+// If this is true then the image to be load will be 
+// 100% loaded to the canvas no matter the size of the window
+export const isLoadFullImg = writable(false);
