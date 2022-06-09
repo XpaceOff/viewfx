@@ -58,14 +58,14 @@
         // this will Update the store $mediaSlot. This store is an array of two values
         // [mediaA, mediaB]
 
-        // When thre is at least one media to be cached
+        // When there is at least one media to be cached
         if ((value[0] || value[1]) && $mediaToBeImported != ""){
             let currentMedia = null;
 
             if ($mediaToBeImported == 'A') currentMedia = value[0];
             if ($mediaToBeImported == 'B') currentMedia = value[1];
 
-            let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+            let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
 
             // Clear old Data
             if ($mediaToBeImported == 'A'){
@@ -87,11 +87,13 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // If it's a seq
-            if (splitedName.length == 4){
+            console.log(splitedName);
+            if (splitedName.length == 5){
+                console.log("HERE-03");
                 let splitedRange = splitedName[0].split('-');
 
-                let imgFrom = parseInt(splitedRange[splitedRange.length-2]);
-                let imgTo = parseInt(splitedName[2]);
+                let imgFrom = parseInt(splitedName[2]);
+                let imgTo = parseInt(splitedName[3]);
 
                 $videoTotalFrameLength = imgTo-imgFrom;
                 $videoStartFrame = imgFrom;
@@ -134,7 +136,7 @@
 
                 }
             }
-
+            console.log("Start Caching...");
             startCaching();
 
         }
@@ -181,12 +183,15 @@
     });
 
     async function startCaching(){
+        console.log("HERE-05");
         let cMediaSlot = $mediaToBeImported;
 
         for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
             let frameNumber = $videoStartFrame + nFrame;
             let seqImgPaths = null;
+
+            console.log("HERE-04");
 
             if (cMediaSlot == 'A'){
                 // Update the bar cache status to 1 (caching)

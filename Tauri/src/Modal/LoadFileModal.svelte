@@ -1,6 +1,6 @@
 <script>
     import { fs, path } from "@tauri-apps/api"
-    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported } from "../stores";
+    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported, videoTotalFrameLength } from "../stores";
     import StdModalContainer from "./StdModalContainer.svelte";
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
     import { getQuickAccessDirs } from "../dirFunctions/quickAccess";
@@ -31,6 +31,7 @@
                 // Only show supported files
                 if (preList[i].name.match(imgFilter)){
 
+                    // Check if the image have a seq format
                     let tmpSeqMatch = preList[i].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
 
                     if (tmpSeqMatch){
@@ -88,13 +89,15 @@
                     }
 
                     //
-                    let padStart = nStart.toString().padStart(seqList[2].length, '0');
-                    let padEnd = nCurrent.toString().padStart(seqList[2].length, '0');
+                    let padStart = nStart.toString().padStart(cImg[2].length, '0');
+                    let padEnd = nCurrent.toString().padStart(cImg[2].length, '0');
                     seqList[nImg][2] = cImg[1] + padStart + '-' + padEnd + '.' + cImg[3];
 
                     seqList[nImg][1].name = seqList[nImg][2];
+                    seqList[nImg][1].seqLength = nCurrent - nStart;
                     rList.push(seqList[nImg][1]);
                     console.log("Pushing: ", seqList[nImg][1]);
+                    console.log("Pushing: ", seqList[nImg]);
                 }
 
                 nStart = 0;
@@ -103,14 +106,6 @@
             }
 
             console.log("---", seqList);
-    
-            let fSplit = seqList[1][1].name.split('.');
-            let imgFrom = seqList[0][1].name.split('.')[1];
-            let imgTo = seqList[seqList.length-1][1].name.split('.')[1];
-            let tmpNewName = [fSplit[0], imgFrom+"-"+imgTo, fSplit[2]].join('.');
-            //seqList[0][1].name = tmpNewName;
-            //rList.push(seqList[0][1]);
-            console.log("Pushing-2: ", seqList[0][1]);
         }
 
         return(rList);
@@ -234,7 +229,10 @@
                         }
 
                         if ($mediaToBeImported == 'B'){
-                            $mediaSlot[1] = selectedFileObj;  // Cache new media B
+                            // Only cache media B if the length is the same as media A
+                            if (selectedFileObj.seqLength == $videoTotalFrameLength){
+                                $mediaSlot[1] = selectedFileObj;  // Cache new media B
+                            }
                         }
                         
                         // TODO: reset all modal variables to default.
