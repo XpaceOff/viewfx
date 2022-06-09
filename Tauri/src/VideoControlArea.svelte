@@ -9,7 +9,7 @@
 
     function nextFrame(){
         if ($isVideoPaused){
-            if ( $videoCurrentFrame < ($videoStartFrame + $videoTotalFrameLength - 1) ){
+            if ( $videoCurrentFrame < $videoTotalFrameLength){
                 $videoCurrentFrame = $videoCurrentFrame + 1;
             }
         }

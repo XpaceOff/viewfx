@@ -353,7 +353,7 @@
                 
                 // If player is not paused inc the frame number
                 if (!($isVideoPaused)){
-                    if ($videoCurrentFrame == $videoTotalFrameLength - 1){
+                    if ($videoCurrentFrame == $videoTotalFrameLength){
                         $videoCurrentFrame = 0;
                     } else {
                         $videoCurrentFrame = $videoCurrentFrame + 1;
