@@ -16,26 +16,28 @@
         let preList = [];
         let rList = [];
         let seqList = [];
-        let imgFilter = /((.png)|(.exr)|(.jpeg)|(.jpg))$/g;
+        let imgFilter = /((.png)|(.exr)|(.jpeg)|(.gif)|(.bmp)|(.ico)|(.jpg))$/g;
 
-        console.log("Getting: ", $modalSelectedDirPath);
         preList = await fs.readDir($modalSelectedDirPath);
-        console.log(preList);
+        console.log("Current folder files", preList);
 
         for (const i in preList){
 
             // Is it's a folder
             if (preList[i].children){
                 rList.push(preList[i])
-            } else{
-                if (preList[i].name.match(imgFilter)){
-                    let tmpSplit = preList[i].name.split('.');
+            } else{ // If not it's a file
 
-                    if (!isNaN(tmpSplit[1])){
-                        seqList.push([0, preList[i]]);
-                    }
-                    else{
-                        rList.push(preList[i]);
+                // Only show supported files
+                if (preList[i].name.match(imgFilter)){
+
+                    let tmpSeqMatch = preList[i].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+
+                    if (tmpSeqMatch){
+                        if (parseInt(tmpSeqMatch[2]))
+                            seqList.push([0, preList[i], ""]);
+                        else
+                            rList.push(preList[i]);
                     }
 
                     //console.log(preList[i].name.split('.'));
@@ -45,18 +47,70 @@
 
         if (seqList.length > 0){
 
-            /*for (const i in seqList){
-                console.log(seqList[i][1]);
-            }*/
+            for (const nImg in seqList){
+                let cImg = null;
+                let nStart = 0;
+                let nCurrent = 0;
+                let nEnd = 0;
+
+                if (seqList[nImg][0] == 0){
+                    cImg = seqList[nImg][1].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                    console.log(cImg);
+
+                    seqList[nImg][0] = 1; // Mark as read
+                    nStart = parseInt(cImg[2]);
+                    nCurrent = nStart;
+                    console.log(nStart);
+
+                    for (const nImg2 in seqList){
+
+                        // If the image is not marked yet
+                        if (seqList[nImg2][0] == 0){
+                            let cImg2 = seqList[nImg2][1].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+
+                            // Check that the name match
+                            if (cImg2[1] == cImg[1]){
+
+                                // Check that the ext match
+                                if ( cImg2[3] == cImg[3] ){
+
+                                    // Check that the nPads match
+                                    if ( cImg2[2].length == cImg[2].length ){
+    
+                                        if ( parseInt(cImg2[2]) ==  nCurrent+1 ){
+                                            seqList[nImg2][0] = 1;
+                                            nCurrent = nCurrent + 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //
+                    let padStart = nStart.toString().padStart(seqList[2].length, '0');
+                    let padEnd = nCurrent.toString().padStart(seqList[2].length, '0');
+                    seqList[nImg][2] = cImg[1] + padStart + '-' + padEnd + '.' + cImg[3];
+
+                    seqList[nImg][1].name = seqList[nImg][2];
+                    rList.push(seqList[nImg][1]);
+                    console.log("Pushing: ", seqList[nImg][1]);
+                }
+
+                nStart = 0;
+                nCurrent = 0;
+                nEnd = 0;
+            }
+
+            console.log("---", seqList);
     
             let fSplit = seqList[1][1].name.split('.');
             let imgFrom = seqList[0][1].name.split('.')[1];
             let imgTo = seqList[seqList.length-1][1].name.split('.')[1];
             let tmpNewName = [fSplit[0], imgFrom+"-"+imgTo, fSplit[2]].join('.');
-            seqList[0][1].name = tmpNewName;
-            rList.push(seqList[0][1]);
-            console.log(seqList[0]);
-            console.log(tmpNewName);
+            //seqList[0][1].name = tmpNewName;
+            //rList.push(seqList[0][1]);
+            console.log("Pushing-2: ", seqList[0][1]);
         }
 
         return(rList);

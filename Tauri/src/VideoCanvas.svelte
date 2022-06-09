@@ -65,7 +65,7 @@
             if ($mediaToBeImported == 'A') currentMedia = value[0];
             if ($mediaToBeImported == 'B') currentMedia = value[1];
 
-            let splitedName = currentMedia.name.split('.');
+            let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
 
             // Clear old Data
             if ($mediaToBeImported == 'A'){
@@ -87,47 +87,51 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // If it's a seq
-            if (splitedName.length == 3){
-                let splitedRange = splitedName[1].split('-');
-                if (splitedRange.length == 2){
-                    let imgFrom = parseInt(splitedRange[0]);
-                    let imgTo = parseInt(splitedRange[1]);
+            if (splitedName.length == 4){
+                let splitedRange = splitedName[0].split('-');
 
-                    $videoTotalFrameLength = imgTo-imgFrom;
-                    $videoStartFrame = imgFrom;
+                let imgFrom = parseInt(splitedRange[splitedRange.length-2]);
+                let imgTo = parseInt(splitedName[2]);
 
-                    for (let x=0; x<=$videoTotalFrameLength; x++){
-                        let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
-                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
-                        tmpImageName = tmpImageName.replace(/\\/g, '/');
-                        //console.log(tmpImageName);
+                $videoTotalFrameLength = imgTo-imgFrom;
+                $videoStartFrame = imgFrom;
 
-                        if ($mediaToBeImported == 'A'){
-                            // Create the array of image paths
-                            seqImgPathsA.push(tmpImageName);
-    
-                            // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderA.push(0);
-    
-                            // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusA.push(0);
+                // Save the initial frame range. This is useful
+                // so before media B is loaded we can check that
+                // the length of media B match media A
+                initFrameRange = $videoTotalFrameLength;
 
-                            // 
-                            rawImageFramesDiff.push(null);
-                        }
+                for (let x=0; x<=$videoTotalFrameLength; x++){
+                    let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                    let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
+                    tmpImageName = tmpImageName.replace(/\\/g, '/');
+                    console.log("tmpImageName: ", tmpImageName);
 
-                        if ($mediaToBeImported == 'B'){
-                            // Create the array of image paths
-                            seqImgPathsB.push(tmpImageName);
-    
-                            // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderB.push(0);
-    
-                            // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusB.push(0);
-                        }
+                    if ($mediaToBeImported == 'A'){
+                        // Create the array of image paths
+                        seqImgPathsA.push(tmpImageName);
 
+                        // Create the array that will contain the right order of frames already cached
+                        rawImageFramesOrderA.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        $barFrameCacheStatusA.push(0);
+
+                        // 
+                        rawImageFramesDiff.push(null);
                     }
+
+                    if ($mediaToBeImported == 'B'){
+                        // Create the array of image paths
+                        seqImgPathsB.push(tmpImageName);
+
+                        // Create the array that will contain the right order of frames already cached
+                        rawImageFramesOrderB.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        $barFrameCacheStatusB.push(0);
+                    }
+
                 }
             }
 
@@ -256,7 +260,7 @@
 
     function updateCanvas(time) {
 
-        if (rawImageFramesOrderA != []){
+        if (rawImageFramesOrderA.length > 0){
             // 24 frames per second (1000/24fps = 41.66):
             // Update the canvas every X frames per second 
             if (time > lastFrameTime + 41.66) {
