@@ -5,10 +5,25 @@
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
     import { getQuickAccessDirs } from "../dirFunctions/quickAccess";
     import { onMount } from 'svelte';
+import { join } from "@tauri-apps/api/path";
 
     let quickAccessDirectories = getQuickAccessDirs();
     let selectedFileIndex = -1;
     let selectedFileObj = null;
+    let pathHistory = [];
+    let currentPathHisIndex = null;
+
+    function popHistory(hisArray, currentIndex){
+        if (currentIndex < hisArray.length-1){
+            let nPops = hisArray.length - 1 - currentIndex;
+
+            for (let i=0; i<nPops; i++){
+                hisArray.pop();
+            }
+        }
+
+        return( hisArray );
+    }
 
     // TODO: For now I am using the Tauri API to read directories.
     // This is quite limited so I might do this with invoke later :)
@@ -96,8 +111,6 @@
                     seqList[nImg][1].name = seqList[nImg][2];
                     seqList[nImg][1].seqLength = nCurrent - nStart;
                     rList.push(seqList[nImg][1]);
-                    console.log("Pushing: ", seqList[nImg][1]);
-                    console.log("Pushing: ", seqList[nImg]);
                 }
 
                 nStart = 0;
@@ -105,7 +118,7 @@
                 nEnd = 0;
             }
 
-            console.log("---", seqList);
+            //console.log("---", seqList);
         }
 
         return(rList);
@@ -121,6 +134,9 @@
             console.log("Home dir: ", tmpHomeDir);
             $modalSelectedDirPath = tmpHomeDir;
 
+            pathHistory.push(tmpHomeDir);
+            currentPathHisIndex = 0;
+
             reloadFiles();
         });
     })
@@ -134,12 +150,53 @@
 
         <!-- Top Area -->
         <div class="flex flex-row items-center w-full h-12 px-1">
-            <StdSquareButton cssIcon={"fa-arrow-left"}></StdSquareButton>
-            <StdSquareButton cssIcon={"fa-arrow-right"}></StdSquareButton>
-            <StdSquareButton cssIcon={"fa-arrow-up"}></StdSquareButton>
+            <StdSquareButton
+                on:click={() => {
+                    let tmpCurrentPath = $modalSelectedDirPath;
+
+                    if (currentPathHisIndex > 0) currentPathHisIndex -= 1;
+                    $modalSelectedDirPath = pathHistory[currentPathHisIndex];
+
+                    // Only reload if the path actually changed
+                    if ( tmpCurrentPath != $modalSelectedDirPath ) reloadFiles();
+                }}
+                cssIcon={"fa-arrow-left"}
+            />
+            <StdSquareButton
+                on:click={() => {
+                    let tmpCurrentPath = $modalSelectedDirPath;
+
+                    if (currentPathHisIndex < pathHistory.length-1) currentPathHisIndex += 1;
+                    $modalSelectedDirPath = pathHistory[currentPathHisIndex];
+
+                    // Only reload if the path actually changed
+                    if ( tmpCurrentPath != $modalSelectedDirPath ) reloadFiles();
+                }}
+                cssIcon={"fa-arrow-right"}
+            />
+            <StdSquareButton
+                on:click={() => {
+                    let tmpCurrentPath = $modalSelectedDirPath;
+
+                    if (tmpCurrentPath[tmpCurrentPath.length-1] == '\\')
+                        tmpCurrentPath = tmpCurrentPath.slice(0,-1);
+
+                    tmpCurrentPath = tmpCurrentPath.split('\\').slice(0, tmpCurrentPath.split('\\').length-1).join('\\');
+
+                    $modalSelectedDirPath = tmpCurrentPath;
+                    reloadFiles();
+                }}
+                cssIcon={"fa-arrow-up"}
+            />
             <input
                 bind:value={$modalSelectedDirPath}
-                on:change={reloadFiles}
+                on:change={(val) => {
+                    pathHistory = popHistory(pathHistory, currentPathHisIndex);
+                    pathHistory.push($modalSelectedDirPath);
+                    currentPathHisIndex += 1;
+                    
+                    reloadFiles();
+                }}
                 type="text"
                 class="flex w-full h-6 mx-2 px-2 rounded-md bg-zinc-900 text-zinc-300 border-none ring-0 placeholder:text-zinc-600 focus:outline-none focus:ring-sky-500 focus:ring-1"
                 placeholder="Directory..."
@@ -157,6 +214,9 @@
                         <div
                             on:click={() => {
                                 $modalSelectedDirPath = qaDir[1];
+                                pathHistory = popHistory(pathHistory, currentPathHisIndex);
+                                pathHistory.push(qaDir[1]);
+                                currentPathHisIndex += 1;
                                 reloadFiles();
                             }}
                             class="{ qaDir[1] == $modalSelectedDirPath ? 'text-sky-500 bg-zinc-700' : 'text-zinc-400' } flex w-full h-6 mt-1 px-2 items-center hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none"
@@ -180,8 +240,11 @@
                             {#if nFile.children}
                                 <!-- If it's a folder -->
                                 <div
-                                    on:click={() => { 
+                                    on:click={() => {
                                         $modalSelectedDirPath = nFile.path;
+                                        pathHistory = popHistory(pathHistory, currentPathHisIndex);
+                                        pathHistory.push(nFile.path);
+                                        currentPathHisIndex += 1;
                                         selectedFileIndex = -1;
                                         selectedFileObj = null;
                                         reloadFiles();
