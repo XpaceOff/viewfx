@@ -29,3 +29,10 @@ https://www.reddit.com/r/rust/comments/c313jf/why_people_use_both_yew_and_rocket
 - [Yew](https://yew.rs/) (Frontend)
 - [Actix](https://actix.rs/) (Backend)
 - [Rocket](https://rocket.rs/) (Backend)
+
+### Video decoder
+
+- FFmpeg
+  - https://stackoverflow.com/questions/43859091/using-ffmpeg-shared-library-in-a-commercial-c-c-application
+  - https://softwareengineering.stackexchange.com/questions/86142/what-exactly-do-i-need-to-do-if-i-use-a-lgpl-licensed-library
+  - https://trac.ffmpeg.org/wiki/CompilationGuide
