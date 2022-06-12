@@ -232,7 +232,7 @@ import { join } from "@tauri-apps/api/path";
             </div>
 
             <!-- Files and folders in current directory -->
-            <div class="flex flex-col w-full h-full px-2 pt-1 pb-3 overflow-x-hidden overflow-y-auto">
+            <div class="flex flex-col w-full h-full px-2 pt-1 pb-3 overflow-x-hidden overflow-y-auto scrollbar-thin scrollbar-thumb-sky-700 scrollbar-track-zinc-600 hover:scrollbar-thumb-sky-600">
                 {#await currentDirList}
                     <p>Loading Files...</p>
                 {:then cAllFiles}
