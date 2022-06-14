@@ -36,3 +36,16 @@ https://www.reddit.com/r/rust/comments/c313jf/why_people_use_both_yew_and_rocket
   - https://stackoverflow.com/questions/43859091/using-ffmpeg-shared-library-in-a-commercial-c-c-application
   - https://softwareengineering.stackexchange.com/questions/86142/what-exactly-do-i-need-to-do-if-i-use-a-lgpl-licensed-library
   - https://trac.ffmpeg.org/wiki/CompilationGuide
+  - [ffmpeg doc](https://ffmpeg.org/ffmpeg.html#filter_005foption)
+  - https://superuser.com/questions/1047660/ffmpeg-pipe-images-extracted-from-video
+
+command to get an specific frame from video:
+
+```bash
+$ .\ffmpeg.exe -i .\SC_07.mov -vf "select=eq(n\,10)" -f image2pipe -vframes 1 -
+```
+
+`-i` input file.
+`vf` filter specific frame (frame 10 in this case)
+`-f` this allows me to send image through pipes instead of saving it into a file
+`-` this is the output
