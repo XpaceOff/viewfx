@@ -12,7 +12,14 @@ struct ImgMetadata {
 
 fn main() {
 
-    println!("{:?}", std::env::current_exe());
+    // Empty image metadata
+    let mut img_metadata = ImgMetadata{
+        width: 0,
+        height: 0,
+        fps: 0,
+    };
+
+    println!("# Current exe: {:?}", std::env::current_exe());
 
     // Command
     // $ .\ffmpeg.exe -i .\SC_07.mov -vf "select=eq(n\,10)" -f image2pipe -vframes 1 -
@@ -49,7 +56,7 @@ fn main() {
 
     println!("# CMD called. Waiting...");
 
-    let tmp_pipe = cmd.wait_with_output().expect("Error wjile waiting");
+    let tmp_pipe = cmd.wait_with_output().expect("Error while waiting");
 
     let err_out = match str::from_utf8(&tmp_pipe.stderr) {
         Ok(out) => {out},
@@ -59,27 +66,43 @@ fn main() {
     let err_out = err_out.lines();
 
     println!("# Result --> ");
-    println!("Status: {:?}", tmp_pipe.status);
+    //println!("Status: {:?}", tmp_pipe.status);
     //println!("Stdout: {:?}", tmp_pipe.stdout);
     //println!("Stderr: {:?}", err_out);
 
+    // Regex Filter Object
     let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
     for n_line in err_out {
         if n_line.contains("Stream "){
-
-            println!("{:?}", n_line);
             let tmp_meta = match rx_filter.captures(n_line) {
-                Some(r) => match r.get(1) {
-                    Some(r1) => r1.as_str(),
-                    _ => "",
+                Some(r) => {
+                    let mut r_meta = ImgMetadata{ width: 0, height: 0, fps: 0 };
+                    if r.len() == 5{
+                        r_meta = ImgMetadata{
+                            width: r.get(1).unwrap().as_str().parse().unwrap(),
+                            height:  r.get(2).unwrap().as_str().parse().unwrap(),
+                            fps:  r.get(4).unwrap().as_str().parse().unwrap(),
+                        };
+                    }
+
+                    r_meta
+                    
                 },
-                _ => "",
+                _ => {
+                    let r_meta = ImgMetadata{ width: 0, height: 0, fps: 0 };
+                    r_meta
+                }
             };
 
-            println!("{:?}", tmp_meta);
-
+            if tmp_meta.width > 0 && tmp_meta.height > 0 && tmp_meta.fps > 0 {
+                img_metadata = tmp_meta;
+                
+            }
         }
     }
+
+    // Print Metadata
+    println!("# Matadata: {:?}x{:?} @{:?}fps", img_metadata.width, img_metadata.height, img_metadata.fps);
 
     //println!("All: {:?}", tmp_pipe);
 
