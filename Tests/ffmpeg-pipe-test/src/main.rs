@@ -2,6 +2,7 @@ use core::panic;
 use std::process::{Command, Stdio};
 use std::str;
 use regex::Regex;
+use image::{GenericImage, GenericImageView, ImageBuffer, RgbImage};
 //use std::io::BufReader;
 
 struct ImgMetadata {
@@ -45,11 +46,13 @@ fn main() {
         .arg("-vf")
         .arg("select=eq(n\\,10)")
         .arg("-f")
-        .arg("image2pipe")
+        .arg("rawvideo")
+        .arg("-pix_fmt")
+        .arg("argb")
         .arg("-vframes")
         .arg("1")
         .arg("-")
-        .stdout(Stdio::null())
+        .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .expect("errorr");
@@ -103,6 +106,21 @@ fn main() {
 
     // Print Metadata
     println!("# Matadata: {:?}x{:?} @{:?}fps", img_metadata.width, img_metadata.height, img_metadata.fps);
+
+    // Construct a new RGB ImageBuffer with the specified width and height.
+    let mut img: RgbImage = ImageBuffer::new(img_metadata.width, img_metadata.height);
+
+    // Iterate over the coordinates and pixels of the image
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let xx = x as usize;
+        let pixel_pos = ((img_metadata.width*y*4) + (x*4)) as usize;
+        let r = *tmp_pipe.stdout.get(pixel_pos+1).unwrap() as u8;
+        let g = *tmp_pipe.stdout.get(pixel_pos+2).unwrap() as u8;
+        let b = *tmp_pipe.stdout.get(pixel_pos+3).unwrap() as u8;
+        *pixel = image::Rgb([r, g, b]);
+    }
+
+    img.save("test.png").unwrap();
 
     //println!("All: {:?}", tmp_pipe);
 
