@@ -9,6 +9,8 @@ struct ImgMetadata {
     width: u32,
     height: u32,
     fps: u16,
+    timecode: String,
+    t_frames: usize,
 }
 
 fn main() {
@@ -18,6 +20,8 @@ fn main() {
         width: 0,
         height: 0,
         fps: 0,
+        timecode: "".to_string(),
+        t_frames: 0,
     };
 
     println!("# Current exe: {:?}", std::env::current_exe());
@@ -76,15 +80,19 @@ fn main() {
     // Regex Filter Object
     let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
     for n_line in err_out {
+        //println!("{:?}", n_line);
         if n_line.contains("Stream "){
+            //println!("----------------------------------------- HERE --------");
             let tmp_meta = match rx_filter.captures(n_line) {
                 Some(r) => {
-                    let mut r_meta = ImgMetadata{ width: 0, height: 0, fps: 0 };
+                    let mut r_meta = ImgMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
                     if r.len() == 5{
                         r_meta = ImgMetadata{
                             width: r.get(1).unwrap().as_str().parse().unwrap(),
                             height:  r.get(2).unwrap().as_str().parse().unwrap(),
                             fps:  r.get(4).unwrap().as_str().parse().unwrap(),
+                            timecode: "".to_string(),
+                            t_frames: 0,
                         };
                     }
 
@@ -92,7 +100,7 @@ fn main() {
                     
                 },
                 _ => {
-                    let r_meta = ImgMetadata{ width: 0, height: 0, fps: 0 };
+                    let r_meta = ImgMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
                     r_meta
                 }
             };
@@ -102,10 +110,39 @@ fn main() {
                 
             }
         }
+
+        if n_line.contains("timecode"){
+            // Get the timecode only after I get the fps
+            if img_metadata.width > 0 && img_metadata.height > 0 && img_metadata.fps > 0{
+                let rx_timecode = Regex::new(r"(\d+):(\d+):(\d+):(\d+)").unwrap();
+
+                let _tmp_timecode = match rx_timecode.captures(n_line){
+                    Some(r) => {
+                        let hrs: usize = r.get(1).unwrap().as_str().parse().unwrap();
+                        let min: usize = r.get(2).unwrap().as_str().parse().unwrap();
+                        let sec: usize = r.get(3).unwrap().as_str().parse().unwrap();
+                        let fra: usize = r.get(4).unwrap().as_str().parse().unwrap();
+                        let tmp_fps = img_metadata.fps as usize;
+
+                        let tmp_total_frames = (hrs * 60 * 60 * tmp_fps) + (min * 60 * tmp_fps) + (sec * tmp_fps) + fra;
+
+                        img_metadata.timecode = r.get(0).unwrap().as_str().parse().unwrap();
+                        img_metadata.t_frames = tmp_total_frames;
+
+                        //println!("{:?}", tmp_total_frames);
+                        //println!("{:?}", r.get(0).unwrap().as_str())
+                        ()
+                    },
+                    _ => (),
+                };
+                //println!("{:?}", n_line);
+
+            }
+        }
     }
 
     // Print Metadata
-    println!("# Matadata: {:?}x{:?} @{:?}fps", img_metadata.width, img_metadata.height, img_metadata.fps);
+    println!("# Matadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.t_frames);
 
     // Construct a new RGB ImageBuffer with the specified width and height.
     let mut img: RgbImage = ImageBuffer::new(img_metadata.width, img_metadata.height);
