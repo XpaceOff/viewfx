@@ -28,10 +28,10 @@ import { join } from "@tauri-apps/api/path";
     // TODO: For now I am using the Tauri API to read directories.
     // This is quite limited so I might do this with invoke later :)
     async function cReloadFiles(){
-        let preList = [];
-        let rList = [];
-        let seqList = [];
-        let imgFilter = /((.png)|(.exr)|(.jpeg)|(.gif)|(.bmp)|(.ico)|(.jpg))$/g;
+        let preList = [];   // List of files returned from Turi's API
+        let rList = [];     // List to be returned
+        let seqList = [];   // tmp list containing img seqs. Once I know the n seq these will be push to rList
+        let imgFilter = /((.png)|(.exr)|(.jpeg)|(.gif)|(.bmp)|(.ico)|(.jpg)|(.mov))$/g; // File formats acepted by ViewFX
 
         preList = await fs.readDir($modalSelectedDirPath);
         console.log("Current folder files", preList);
@@ -41,7 +41,7 @@ import { join } from "@tauri-apps/api/path";
             // Is it's a folder
             if (preList[i].children){
                 rList.push(preList[i])
-            } else{ // If not it's a file
+            } else{ // If not, it's a file
 
                 // Only show supported files
                 if (preList[i].name.match(imgFilter)){
@@ -49,13 +49,16 @@ import { join } from "@tauri-apps/api/path";
                     // Check if the image have a seq format
                     let tmpSeqMatch = preList[i].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
 
+                    // If so, push it to the seqList to be analized later.
                     if (tmpSeqMatch){
-                        if (parseInt(tmpSeqMatch[2]))
+                        // Just make sure its a seq
+                        if (!isNaN( parseInt(tmpSeqMatch[2]) ))
                             seqList.push([0, preList[i], ""]);
-                        else
-                            rList.push(preList[i]);
                     }
-
+                    else{// Otherwise, just push it because it's either a video or a single image.
+                        preList[i].seqLength = 0;
+                        rList.push(preList[i]);
+                    }
                     //console.log(preList[i].name.split('.'));
                 }
             }
@@ -109,7 +112,7 @@ import { join } from "@tauri-apps/api/path";
                     seqList[nImg][2] = cImg[1] + padStart + '-' + padEnd + '.' + cImg[3];
 
                     seqList[nImg][1].name = seqList[nImg][2];
-                    seqList[nImg][1].seqLength = nCurrent - nStart;
+                    seqList[nImg][1].seqLength = nCurrent - nStart + 1;
                     rList.push(seqList[nImg][1]);
                 }
 
