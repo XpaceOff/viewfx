@@ -16,7 +16,7 @@ struct ImgMetadata {
 fn main() {
 
     // Empty image metadata
-    let mut img_metadata = ImgMetadata{
+    let mut img_metadata = ImgMetadata {
         width: 0,
         height: 0,
         fps: 0,
@@ -85,7 +85,7 @@ fn main() {
             //println!("----------------------------------------- HERE --------");
             let tmp_meta = match rx_filter.captures(n_line) {
                 Some(r) => {
-                    let mut r_meta = ImgMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
+                    let mut r_meta = ImgMetadata { width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
                     if r.len() == 5{
                         r_meta = ImgMetadata{
                             width: r.get(1).unwrap().as_str().parse().unwrap(),

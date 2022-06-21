@@ -59,6 +59,7 @@ version = "0.0.1"
 dependencies = [
  "axum",
  "image",
+ "regex",
  "serde",
  "serde_json",
  "tauri",

@@ -28,6 +28,7 @@ async fn main() {
     let app = Router::new()
     .route("/", get(|| async { "ViewFX" }))
     .route("/image_raw_data", get(http_get_image_raw_data))
+    .route("/video_metadata", get(http_get_video_metadata))
     .layer(
       // CORS Middleware that solves the CORS problem
       // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
@@ -133,6 +134,132 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   Ok( (StatusCode::OK, Json(image_r)) )
 }
 
+use std::process::{Command, Stdio};
+use regex::Regex;
+use std::path::Path;
+async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(StatusCode, Json<VideoMetadata>), (StatusCode, String)> {
+  // Empty image metadata
+  let mut img_metadata = VideoMetadata {
+    width: 0,
+    height: 0,
+    fps: 0,
+    timecode: "".to_string(),
+    t_frames: 0,
+  };
+
+  print!("Video Path: {:?}", &payload.video_full_path);
+
+  if !(Path::new(&payload.video_full_path).is_file()){
+    return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path.")) );
+  }
+
+  println!("# Calling CMD");
+  // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
+  // Execute ffmpeg
+  let cmd = match Command::new("tmpffmpeg/ffmpeg.exe")
+    .arg("-i")
+    .arg(&payload.video_full_path)
+    .arg("-vf")
+    .arg("select=eq(n\\,10)")
+    .arg("-f")
+    .arg("rawvideo")
+    .arg("-pix_fmt")
+    .arg("argb")
+    .arg("-vframes")
+    .arg("1")
+    .arg("-")
+    .stdout(Stdio::piped())
+    .stderr(Stdio::piped())
+    .spawn(){
+      Ok(out) => out,
+      Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
+    };
+
+  println!("# CMD called. Waiting...");
+
+  // Wait for the command to complete.
+  let tmp_pipe = match cmd.wait_with_output(){
+    Ok(out) => out,
+    Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error while waiting for ffmpeg. {:?}", err) ))
+  };//.expect("Error while waiting");
+
+  // Once it's completed transform the stderr ( where the metadata info is stored in )
+  let err_output = match std::str::from_utf8(&tmp_pipe.stderr) {
+    Ok(out) => {out},
+    Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error getting metadata. {:?}", err)) )
+  };
+
+  let err_output = err_output.lines();
+
+  //println!("Status: {:?}", tmp_pipe.status);
+  //println!("Stdout: {:?}", tmp_pipe.stdout);
+  //println!("Stderr: {:?}", err_output);
+
+  // Regex Filter Object
+  let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
+  for n_line in err_output {
+
+    // Width, Height, and FPS are stored in a line that constains the word "Stream".
+    if n_line.contains("Stream "){
+      let tmp_meta = match rx_filter.captures(n_line) {
+        Some(r) => {
+          let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
+            if r.len() == 5{
+              r_meta = VideoMetadata{
+                width: r.get(1).unwrap().as_str().parse().unwrap(),
+                height:  r.get(2).unwrap().as_str().parse().unwrap(),
+                fps:  r.get(4).unwrap().as_str().parse().unwrap(),
+                timecode: "".to_string(),
+                t_frames: 0,
+              };
+            }
+
+            r_meta
+        },
+        _ => {
+          let r_meta = VideoMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
+          r_meta
+        }
+      };
+
+      if tmp_meta.width > 0 && tmp_meta.height > 0 && tmp_meta.fps > 0 {
+        img_metadata = tmp_meta;
+      }
+    }
+
+    if n_line.contains("timecode"){
+      // Get the timecode only after I get the fps
+      if img_metadata.width > 0 && img_metadata.height > 0 && img_metadata.fps > 0{
+        let rx_timecode = Regex::new(r"(\d+):(\d+):(\d+):(\d+)").unwrap();
+
+        let _tmp_timecode = match rx_timecode.captures(n_line){
+          Some(r) => {
+            let hrs: usize = r.get(1).unwrap().as_str().parse().unwrap();
+            let min: usize = r.get(2).unwrap().as_str().parse().unwrap();
+            let sec: usize = r.get(3).unwrap().as_str().parse().unwrap();
+            let fra: usize = r.get(4).unwrap().as_str().parse().unwrap();
+            let tmp_fps = img_metadata.fps as usize;
+
+            let tmp_total_frames = (hrs * 60 * 60 * tmp_fps) + (min * 60 * tmp_fps) + (sec * tmp_fps) + fra;
+
+            img_metadata.timecode = r.get(0).unwrap().as_str().parse().unwrap();
+            img_metadata.t_frames = tmp_total_frames;
+
+            ()
+          },
+          _ => (),
+        };
+      }
+    }
+  }
+
+  // Print Metadata
+  println!("# Matadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.t_frames);
+
+  Ok( (StatusCode::OK, Json(img_metadata)) )
+
+}
+
 #[derive(Deserialize)]
 struct ImageQuery {
   load_full_img: bool,
@@ -142,9 +269,23 @@ struct ImageQuery {
   canvas_h: u32,
 }
 
+#[derive(Deserialize)]
+struct MetadataQuery {
+  video_full_path: String,
+}
+
 #[derive(Serialize)]
 struct ImageResult {
   image_raw_data: Vec<u8>,
   frame_number: u32,
   img_dimensions: (u32, u32),
+}
+
+#[derive(Serialize)]
+struct VideoMetadata {
+  width: u32,
+  height: u32,
+  fps: u16,
+  timecode: String,
+  t_frames: usize,
 }
