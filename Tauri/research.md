@@ -43,9 +43,15 @@ command to get an specific frame from video:
 
 ```bash
 $ .\ffmpeg.exe -i .\SC_07.mov -vf "select=eq(n\,10)" -f image2pipe -vframes 1 -
+
+$ .\ffmpeg.exe -i .\SC_07.mov -vf "select=eq(n\,10)" -f rawvideo -pix_fmt rgba -vframes 1 -
 ```
 
 `-i` input file.
 `vf` filter specific frame (frame 10 in this case)
-`-f` this allows me to send image through pipes instead of saving it into a file
+`-f` format to output.
+  `image2pipe` this allows me to send image through pipes instead of saving it into a file.
+  `rawvideo` output the raw info of the image.
 `-` this is the output
+
+-i .\SC_07.mov -vf "select=eq(n\,10)" -f rawvideo -pix_fmt rgba -vframes 1 -
