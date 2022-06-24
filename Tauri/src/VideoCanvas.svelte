@@ -37,6 +37,10 @@
     // Time variables
 	let lastFrameTime = 0;
 
+    // Variables to set at pre-cached time.
+    let imgTypeToLoadFrom = ""; //  [FROM_VIDEO | FROM_IMG]
+    let vidImgResolution = [0, 0];
+
     onMount(() => {
 		// prepare canvas stores
 		context = canvas.getContext('2d');
@@ -50,8 +54,8 @@
         updateCanvas();
 	});
 
-    // Cache Media once `mediaSlot` is changed
-    const unsubscribe = mediaSlot.subscribe(value => {
+    // Pre-cache Media once `mediaSlot` is changed
+    const unsubscribe = mediaSlot.subscribe(async (value) => {
         // TODO: all this function have to be re-written
 
         // When a plate is selected in the modal, and then clicked the button `import`
@@ -60,12 +64,10 @@
 
         // When there is at least one media to be cached
         if ((value[0] || value[1]) && $mediaToBeImported != ""){
-            let currentMedia = null;
+            let currentMedia = null;    // media to be cached.
 
             if ($mediaToBeImported == 'A') currentMedia = value[0];
             if ($mediaToBeImported == 'B') currentMedia = value[1];
-
-            let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
 
             // Clear old Data
             if ($mediaToBeImported == 'A'){
@@ -87,58 +89,119 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // If it's a seq
-            console.log(splitedName);
-            if (splitedName.length == 5){
-                console.log("HERE-03");
-                let splitedRange = splitedName[0].split('-');
+            if (currentMedia.seqLength > 0){
+                let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
 
-                let imgFrom = parseInt(splitedName[2]);
-                let imgTo = parseInt(splitedName[3]);
+                if (splitedName.length == 5){ // Just making sure
+                    console.log("HERE-03");
 
-                $videoTotalFrameLength = imgTo-imgFrom;
-                $videoStartFrame = imgFrom;
+                    let imgFrom = parseInt(splitedName[2]);
+                    let imgTo = parseInt(splitedName[3]);
 
-                // Save the initial frame range. This is useful
-                // so before media B is loaded we can check that
-                // the length of media B match media A
-                initFrameRange = $videoTotalFrameLength;
+                    $videoTotalFrameLength = imgTo-imgFrom;
+                    $videoStartFrame = imgFrom;
 
-                for (let x=0; x<=$videoTotalFrameLength; x++){
-                    let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
-                    let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
-                    tmpImageName = tmpImageName.replace(/\\/g, '/');
-                    console.log("tmpImageName: ", tmpImageName);
+                    // Save the initial frame range. This is useful
+                    // so before media B is loaded we can check that
+                    // the length of media B match media A
+                    initFrameRange = $videoTotalFrameLength;
 
-                    if ($mediaToBeImported == 'A'){
-                        // Create the array of image paths
-                        seqImgPathsA.push(tmpImageName);
+                    for (let x=0; x<=$videoTotalFrameLength; x++){
+                        let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
+                        tmpImageName = tmpImageName.replace(/\\/g, '/');
 
-                        // Create the array that will contain the right order of frames already cached
-                        rawImageFramesOrderA.push(0);
+                        if ($mediaToBeImported == 'A'){
+                            // Create the array of image paths
+                            seqImgPathsA.push(tmpImageName);
 
-                        // Update the bar cache status to 0 (non-cached)
-                        $barFrameCacheStatusA.push(0);
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderA.push(0);
 
-                        // 
-                        rawImageFramesDiff.push(null);
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusA.push(0);
+
+                            // 
+                            rawImageFramesDiff.push(null);
+                        }
+
+                        if ($mediaToBeImported == 'B'){
+                            // Create the array of image paths
+                            seqImgPathsB.push(tmpImageName);
+
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderB.push(0);
+
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusB.push(0);
+                        }
+
                     }
 
-                    if ($mediaToBeImported == 'B'){
-                        // Create the array of image paths
-                        seqImgPathsB.push(tmpImageName);
-
-                        // Create the array that will contain the right order of frames already cached
-                        rawImageFramesOrderB.push(0);
-
-                        // Update the bar cache status to 0 (non-cached)
-                        $barFrameCacheStatusB.push(0);
-                    }
-
+                    imgTypeToLoadFrom = "FROM_IMG";
                 }
             }
+            else{ // If don't then it's a video file.
+                console.log("It's a video file!");
+                console.log(currentMedia.path);
+
+                try {
+                    const data_from_rust = await axios.get('http://localhost:3000/video_metadata', {
+                        params: {
+                            video_full_path: currentMedia.path,
+                        }
+                    });
+
+                    $videoTotalFrameLength = data_from_rust.data.frame_length;
+                    $videoTotalFrameLength = 24; // Just for now. Remember to remove this !!
+                    $videoStartFrame = 1;
+
+                    // Save the initial frame range. This is useful
+                    // so before media B is loaded we can check that
+                    // the length of media B match media A
+                    initFrameRange = $videoTotalFrameLength;
+
+                    for (let x=0; x<=$videoTotalFrameLength; x++){
+
+                        if ($mediaToBeImported == 'A'){
+                            // Create the array of image paths
+                            seqImgPathsA.push(currentMedia.path);
+
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderA.push(0);
+
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusA.push(0);
+
+                            // 
+                            rawImageFramesDiff.push(null);
+                        }
+
+                        if ($mediaToBeImported == 'B'){
+                            // Create the array of image paths
+                            seqImgPathsB.push(currentMedia.path);
+
+                            // Create the array that will contain the right order of frames already cached
+                            rawImageFramesOrderB.push(0);
+
+                            // Update the bar cache status to 0 (non-cached)
+                            $barFrameCacheStatusB.push(0);
+                        }
+                    }
+
+                    imgTypeToLoadFrom = "FROM_VIDEO";
+
+                } catch (error) {
+                    // TODO: remember to handle this error and make sure that is bug free.
+                    console.error(error);
+                }
+
+                console.log("Data from rust loaded!");
+
+            }
+
             console.log("Start Caching...");
             startCaching();
-
         }
     });
 
@@ -183,15 +246,12 @@
     });
 
     async function startCaching(){
-        console.log("HERE-05");
         let cMediaSlot = $mediaToBeImported;
 
         for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
 
             let frameNumber = $videoStartFrame + nFrame;
             let seqImgPaths = null;
-
-            console.log("HERE-04");
 
             if (cMediaSlot == 'A'){
                 // Update the bar cache status to 1 (caching)
@@ -207,13 +267,24 @@
                 seqImgPaths = seqImgPathsB;
             }
 
-            console.log("First canvas size: ", $canvasSize);
+            let queryParams = {
+                src_img_type: imgTypeToLoadFrom,
+                load_full_img: $isLoadFullImg,
+                img_full_path: seqImgPaths[nFrame],
+                frame_number: frameNumber,
+                canvas_w: $canvasSize[0],
+                canvas_h: $canvasSize[1]
+            }
+
+            //console.log(" # queryParams: ", queryParams);
+
             axios.get('http://localhost:3000/image_raw_data', {
                 //headers: {
                 //    "Origin": [""],
 			    //    "Access-Control-Allow-Origin": "*",
                 // },
                 params: {
+                    src_img_type: imgTypeToLoadFrom,
                     load_full_img: $isLoadFullImg,
                     img_full_path: seqImgPaths[nFrame],
                     frame_number: frameNumber,

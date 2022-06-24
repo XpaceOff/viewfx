@@ -69,6 +69,10 @@ async fn main() {
 // Read image and returns it through the http bridge
 async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
 
+  use std::time::Instant;
+  let start_time = Instant::now();
+
+  let src_img_type = payload.src_img_type.clone();
   let img_full_path = payload.img_full_path.clone();
   
   let load_full_img = payload.load_full_img;
@@ -76,62 +80,171 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
   let canvas_w = payload.canvas_w;
   let canvas_h = payload.canvas_h;
 
-  // Number pf pads (0) for the image number.
-  // let n_pads = 3;
-
   println!("# Canva's size is {}x{}", canvas_w, canvas_h);
 
   // TODO: Make sure that this number does not lead to a security issue.
   // Set the image to load
-  let img_name = img_full_path; //format!("C:/Users/marqu/Resilio Sync/potato/programming/Tests/tauri_test/tauri-canvas/public/jpg-seq/ezgif-frame-{:0n_pads$}.jpg", frame_number, n_pads = n_pads);
-  println!("# HTTP-LOG: {}", img_name);
+  println!("# Image full path: {}", img_full_path);
 
-  // Open the image
-  let img = image::open(img_name);
-  let mut img = match img {
-    Ok(tmp_image) => tmp_image,
-    Err(_error) => return Err( (StatusCode::NOT_FOUND, format!("Image not found")) ),
-  };
-
-  println!("# Original dimensions {:?}", img.dimensions());
-
-  if !load_full_img {
-    //let img = img.resize(canvas_w, canvas_h, image::imageops::Lanczos3);
-    img = img.thumbnail(canvas_w, canvas_h);
-  }
-  
-  // The dimensions method returns the images width and height.
-  println!("# Returned dimensions are {:?}", img.dimensions());
-
-  // The color method returns the image's `ColorType`.
-  //println!("{:?}", img.color());
-
-  let mut img_raw_data = Vec::new();
-  for (_x, _y, pixel) in img.pixels() {
-    // Do something with pixel.
-    //println!("{:?}", pixel.0[0]);
-    img_raw_data.push(pixel.0[0]);
-    img_raw_data.push(pixel.0[1]);
-    img_raw_data.push(pixel.0[2]);
-    img_raw_data.push(pixel.0[3]);
+  // Make sure that the img to be load is actually a file.
+  if !(Path::new(&img_full_path).is_file()){
+    return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path.")) );
   }
 
-  println!("Data transformed!");
+  let image_result = match src_img_type.as_str(){
+    "FROM_VIDEO" => { // When the img is loaded from a video.
+      println!("# image loaded from a video");
 
-  // TODO: Make sure that this is 100% secure
-  // Returns:{
-  //   1- An array with the raw data of the current image
-  //   2- Current frame number / image number
-  //   3- The size to be display on the canvas
-  // }
+      println!("# Calling CMD");
+      // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
+      // Execute ffmpeg
+      let cmd = match Command::new("tmpffmpeg/ffmpeg.exe")
+        //.arg("-hwaccel")
+        //.arg("cuda")
+        //.arg("-hwaccel_output_format")
+        //.arg("cuda")
+        //.arg("-init_hw_device")
+        //.arg("vulkan")
+        .arg("-i")
+        .arg(&img_full_path)
+        .arg("-vf")
+        .arg( format!("select=eq(n\\,{})", frame_number) )
+        //.arg("-filter_complex")
+        //.arg( format!("[0:v]select=eq(n\\,{}), scale={}:{}, extractplanes=r", frame_number, canvas_w, canvas_h) )
+        //.arg("extractplanes=r+g+b+a")
+        .arg("-f")
+        .arg("rawvideo")
+        //.arg("image2pipe")
+        .arg("-pix_fmt")
+        .arg("rgba")
+        .arg("-vframes")
+        .arg("1")
+        .arg("-")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn(){
+          Ok(out) => out,
+          Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
+        };
 
-  let image_r = ImageResult {
-    image_raw_data: img_raw_data,
-    frame_number: frame_number,
-    img_dimensions: img.dimensions(),
+      println!("# CMD called. Waiting...");
+
+      // Wait for the command to complete.
+      let tmp_pipe = match cmd.wait_with_output(){
+        Ok(out) => out,
+        Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error while waiting for ffmpeg. {:?}", err) ))
+      };
+
+      println!("# Length: {:?}", tmp_pipe.stdout.len());
+
+      // Once it's completed transform the stderr ( where the metadata info is stored in )
+      let err_output = match std::str::from_utf8(&tmp_pipe.stderr) {
+        Ok(out) => {out},
+        Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error getting metadata. {:?}", err)) )
+      };
+
+      // Regex Filter Object - Get image dimensions.
+      let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
+      let img_dimensions: (u32, u32) = match rx_filter.captures(err_output){
+        Some(rx_result) => {
+          if rx_result.len() == 5{
+            (rx_result.get(1).unwrap().as_str().parse().unwrap(), rx_result.get(2).unwrap().as_str().parse().unwrap())
+          }
+          else{
+            return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error getting image resolution.")) )
+          }
+        },
+        _ => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("Error getting image dimensions.")) )
+      };
+
+      //println!("# Image dimensions: {:?}", img_dimensions);
+
+      /*let err_output = err_output.lines();
+      for i in err_output {
+        println!("{}", i);
+      }*/
+      //println!("{:?}", err_output);
+
+      // TODO: Make sure that this is 100% secure
+      // Returns:{
+      //   1- An array with the raw data of the current image
+      //   2- Current frame number / image number
+      //   3- The size to be display on the canvas
+      // }
+    
+      let image_r = ImageResult {
+        image_raw_data: tmp_pipe.stdout,
+        frame_number: frame_number,
+        //img_dimensions: (canvas_w, canvas_h),
+        img_dimensions: img_dimensions, //img.dimensions(),
+      };
+    
+      // Return the image
+      Ok( (StatusCode::OK, Json(image_r)) )
+      //Err( (StatusCode::BAD_REQUEST, format!("Bad request")) )
+    },
+    "FROM_IMG" => { // When the img is loaded from a image sequence.
+      println!("Its loaded from an image");
+      
+      // Open the image
+      let img = image::open(img_full_path);
+      let mut img = match img {
+        Ok(tmp_image) => tmp_image,
+        Err(_error) => return Err( (StatusCode::NOT_FOUND, format!("Image not found")) ),
+      };
+    
+      println!("# Original dimensions {:?}", img.dimensions());
+    
+      if !load_full_img {
+        //let img = img.resize(canvas_w, canvas_h, image::imageops::Lanczos3);
+        img = img.thumbnail(canvas_w, canvas_h);
+      }
+      
+      // The dimensions method returns the images width and height.
+      println!("# Returned dimensions are {:?}", img.dimensions());
+    
+      // The color method returns the image's `ColorType`.
+      //println!("{:?}", img.color());
+    
+      let mut img_raw_data = Vec::new();
+      for (_x, _y, pixel) in img.pixels() {
+        // Do something with pixel.
+        //println!("{:?}", pixel.0[0]);
+        img_raw_data.push(pixel.0[0]);
+        img_raw_data.push(pixel.0[1]);
+        img_raw_data.push(pixel.0[2]);
+        img_raw_data.push(pixel.0[3]);
+      }
+    
+      println!("Data transformed!");
+      
+      // TODO: Make sure that this is 100% secure
+      // Returns:{
+      //   1- An array with the raw data of the current image
+      //   2- Current frame number / image number
+      //   3- The size to be display on the canvas
+      // }
+    
+      let image_r = ImageResult {
+        image_raw_data: img_raw_data,
+        frame_number: frame_number,
+        img_dimensions: img.dimensions(),
+      };
+    
+      // Return the image
+      Ok( (StatusCode::OK, Json(image_r)) )
+    }
+    _ => {
+      Err( (StatusCode::BAD_REQUEST, format!("Bad request")) )
+    }
   };
 
-  Ok( (StatusCode::OK, Json(image_r)) )
+  let end_time = start_time.elapsed();
+  println!("{:.3?}", end_time);
+
+  image_result
+
+
 }
 
 use std::process::{Command, Stdio};
@@ -144,7 +257,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     height: 0,
     fps: 0,
     timecode: "".to_string(),
-    t_frames: 0,
+    frame_length: 0,
   };
 
   print!("Video Path: {:?}", &payload.video_full_path);
@@ -164,7 +277,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     .arg("-f")
     .arg("rawvideo")
     .arg("-pix_fmt")
-    .arg("argb")
+    .arg("rgba")
     .arg("-vframes")
     .arg("1")
     .arg("-")
@@ -199,25 +312,25 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
   for n_line in err_output {
 
-    // Width, Height, and FPS are stored in a line that constains the word "Stream".
+    // Width, Height, and FPS are stored in a line that contains the word "Stream".
     if n_line.contains("Stream "){
       let tmp_meta = match rx_filter.captures(n_line) {
         Some(r) => {
-          let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
+          let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0, timecode: "".to_string(), frame_length: 0 };
             if r.len() == 5{
               r_meta = VideoMetadata{
                 width: r.get(1).unwrap().as_str().parse().unwrap(),
                 height:  r.get(2).unwrap().as_str().parse().unwrap(),
                 fps:  r.get(4).unwrap().as_str().parse().unwrap(),
                 timecode: "".to_string(),
-                t_frames: 0,
+                frame_length: 0,
               };
             }
 
             r_meta
         },
         _ => {
-          let r_meta = VideoMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), t_frames: 0 };
+          let r_meta = VideoMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), frame_length: 0 };
           r_meta
         }
       };
@@ -243,7 +356,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
             let tmp_total_frames = (hrs * 60 * 60 * tmp_fps) + (min * 60 * tmp_fps) + (sec * tmp_fps) + fra;
 
             img_metadata.timecode = r.get(0).unwrap().as_str().parse().unwrap();
-            img_metadata.t_frames = tmp_total_frames;
+            img_metadata.frame_length = tmp_total_frames;
 
             ()
           },
@@ -254,7 +367,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   }
 
   // Print Metadata
-  println!("# Matadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.t_frames);
+  println!("# Matadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.frame_length);
 
   Ok( (StatusCode::OK, Json(img_metadata)) )
 
@@ -262,6 +375,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
 
 #[derive(Deserialize)]
 struct ImageQuery {
+  src_img_type: String,
   load_full_img: bool,
   img_full_path: String,
   frame_number: u32,
@@ -287,5 +401,5 @@ struct VideoMetadata {
   height: u32,
   fps: u16,
   timecode: String,
-  t_frames: usize,
+  frame_length: usize,
 }
