@@ -255,7 +255,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   let mut img_metadata = VideoMetadata {
     width: 0,
     height: 0,
-    fps: 0,
+    fps: 0.0,
     timecode: "".to_string(),
     frame_length: 0,
   };
@@ -308,6 +308,12 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   //println!("Stdout: {:?}", tmp_pipe.stdout);
   //println!("Stderr: {:?}", err_output);
 
+  // Variables that help me get the frame length.
+  let mut hrs: f64 = 0.0;
+  let mut min: f64 = 0.0;
+  let mut sec: f64 = 0.0;
+  let mut dec_sec: f64 = 0.0;
+
   // Regex Filter Object
   let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
   for n_line in err_output {
@@ -316,7 +322,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     if n_line.contains("Stream "){
       let tmp_meta = match rx_filter.captures(n_line) {
         Some(r) => {
-          let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0, timecode: "".to_string(), frame_length: 0 };
+          let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0.0, timecode: "".to_string(), frame_length: 0 };
             if r.len() == 5{
               r_meta = VideoMetadata{
                 width: r.get(1).unwrap().as_str().parse().unwrap(),
@@ -325,49 +331,45 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
                 timecode: "".to_string(),
                 frame_length: 0,
               };
+
+              let tmp_total_frames: f64 = (hrs * 60.0 * 60.0 * r_meta.fps) + (min * 60.0 * r_meta.fps) + (sec * r_meta.fps) + (dec_sec * 0.01 * r_meta.fps);
+              r_meta.frame_length = tmp_total_frames as usize;
             }
 
             r_meta
         },
         _ => {
-          let r_meta = VideoMetadata{ width: 0, height: 0, fps: 0, timecode: "".to_string(), frame_length: 0 };
+          let r_meta = VideoMetadata{ width: 0, height: 0, fps: 0.0, timecode: "".to_string(), frame_length: 0 };
           r_meta
         }
       };
 
-      if tmp_meta.width > 0 && tmp_meta.height > 0 && tmp_meta.fps > 0 {
+      if tmp_meta.width > 0 && tmp_meta.height > 0 && tmp_meta.fps > 0.0 {
         img_metadata = tmp_meta;
       }
     }
 
-    if n_line.contains("timecode"){
-      // Get the timecode only after I get the fps
-      if img_metadata.width > 0 && img_metadata.height > 0 && img_metadata.fps > 0{
-        let rx_timecode = Regex::new(r"(\d+):(\d+):(\d+):(\d+)").unwrap();
+    if n_line.contains("Duration"){
+      let rx_timecode = Regex::new(r"Duration: ((\d+):(\d+):(\d+).(\d+)),").unwrap();
 
-        let _tmp_timecode = match rx_timecode.captures(n_line){
-          Some(r) => {
-            let hrs: usize = r.get(1).unwrap().as_str().parse().unwrap();
-            let min: usize = r.get(2).unwrap().as_str().parse().unwrap();
-            let sec: usize = r.get(3).unwrap().as_str().parse().unwrap();
-            let fra: usize = r.get(4).unwrap().as_str().parse().unwrap();
-            let tmp_fps = img_metadata.fps as usize;
+      let _tmp_timecode = match rx_timecode.captures(n_line){
+        Some(r) => {
+          hrs = r.get(2).unwrap().as_str().parse().unwrap();
+          min = r.get(3).unwrap().as_str().parse().unwrap();
+          sec = r.get(4).unwrap().as_str().parse().unwrap();
+          dec_sec = r.get(5).unwrap().as_str().parse().unwrap();
 
-            let tmp_total_frames = (hrs * 60 * 60 * tmp_fps) + (min * 60 * tmp_fps) + (sec * tmp_fps) + fra;
+          img_metadata.timecode = r.get(1).unwrap().as_str().parse().unwrap();
 
-            img_metadata.timecode = r.get(0).unwrap().as_str().parse().unwrap();
-            img_metadata.frame_length = tmp_total_frames;
-
-            ()
-          },
-          _ => (),
-        };
-      }
+          ()
+        },
+        _ => (),
+      };
     }
   }
 
   // Print Metadata
-  println!("# Matadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.frame_length);
+  println!("# Metadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.frame_length);
 
   Ok( (StatusCode::OK, Json(img_metadata)) )
 
@@ -399,7 +401,7 @@ struct ImageResult {
 struct VideoMetadata {
   width: u32,
   height: u32,
-  fps: u16,
+  fps: f64,
   timecode: String,
   frame_length: usize,
 }

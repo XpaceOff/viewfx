@@ -152,9 +152,10 @@
                         }
                     });
 
-                    $videoTotalFrameLength = data_from_rust.data.frame_length;
-                    $videoTotalFrameLength = 24; // Just for now. Remember to remove this !!
-                    $videoStartFrame = 1;
+                    console.log("Frame lebgth: ", data_from_rust.data.frame_length);
+                    $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
+                    //$videoTotalFrameLength = 24; // Just for now. Remember to remove this !!
+                    $videoStartFrame = 0;
 
                     // Save the initial frame range. This is useful
                     // so before media B is loaded we can check that
@@ -328,6 +329,10 @@
                 // TODO: Change bar status to `red` / error
                 // TBD
                 console.log(error);
+
+                // Update the bar cache status to 0 (error)
+                if (cMediaSlot == 'A') $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 3;
+                if (cMediaSlot == 'B') $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 3;
             });
         }
 
