@@ -296,9 +296,11 @@ import { join } from "@tauri-apps/api/path";
 
                         if ($mediaToBeImported == 'B'){
                             // Only cache media B if the length is the same as media A
-                            if (selectedFileObj.seqLength == $videoTotalFrameLength){
+                            //if (selectedFileObj.seqLength == $videoTotalFrameLength){
                                 $mediaSlot[1] = selectedFileObj;  // Cache new media B
-                            }
+                            //}
+
+                            console.log(selectedFileObj.seqLength + "==" + $videoTotalFrameLength);
                         }
                         
                         // TODO: reset all modal variables to default.

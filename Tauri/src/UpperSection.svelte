@@ -37,8 +37,11 @@
             text={"diff"}
             on:click={() => {
                 if ($mediaSlot[0] && $mediaSlot[1]){
-                    if ($imgDrawOnCanvasIsDiff == false)
+                    if ($imgDrawOnCanvasIsDiff == false){
                         $imgDrawOnCanvasIsAB = false;
+                        $imgDrawOnCanvasIsA = true;
+                        $imgDrawOnCanvasIsB = false;
+                    }
 
                     $imgDrawOnCanvasIsDiff = !($imgDrawOnCanvasIsDiff);
                 }
@@ -50,8 +53,11 @@
             text={"A/B"}
             on:click={() => {
                 if ($mediaSlot[0] && $mediaSlot[1]){
-                    if ($imgDrawOnCanvasIsAB == false)
+                    if ($imgDrawOnCanvasIsAB == false){
                         $imgDrawOnCanvasIsDiff = false;
+                        $imgDrawOnCanvasIsA = true;
+                        $imgDrawOnCanvasIsB = false;
+                    }
 
                     $imgDrawOnCanvasIsAB = !($imgDrawOnCanvasIsAB);
                 }
@@ -70,8 +76,10 @@
             isPress={$imgDrawOnCanvasIsB}
             cssIcon={"fa-b"}
             on:click={() => {
-                $imgDrawOnCanvasIsA = false;
-                $imgDrawOnCanvasIsB = true;
+                if ($imgDrawOnCanvasIsAB == false && $imgDrawOnCanvasIsDiff == false) {
+                    $imgDrawOnCanvasIsA = false;
+                    $imgDrawOnCanvasIsB = true;
+                }
             }}
         />
         <EmptySpace01></EmptySpace01>

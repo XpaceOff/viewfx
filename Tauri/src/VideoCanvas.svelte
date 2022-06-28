@@ -54,6 +54,8 @@
         updateCanvas();
 	});
 
+    
+
     // Pre-cache Media once `mediaSlot` is changed
     const unsubscribe = mediaSlot.subscribe(async (value) => {
         // TODO: all this function have to be re-written
@@ -154,7 +156,7 @@
 
                     console.log("Frame lebgth: ", data_from_rust.data.frame_length);
                     $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
-                    //$videoTotalFrameLength = 24; // Just for now. Remember to remove this !!
+                    //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
                     $videoStartFrame = 0;
 
                     // Save the initial frame range. This is useful

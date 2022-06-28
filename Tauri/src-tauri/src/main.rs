@@ -38,8 +38,8 @@ async fn main() {
       // TODO: You might need a way to get the port that Tauri is running on.
       // If not then the app won't work because of the CORS problem
       CorsLayer::new()
-      //.allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
-      .allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap())
+      .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
+      //.allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap())
       .allow_methods([Method::GET]),
     );
   
