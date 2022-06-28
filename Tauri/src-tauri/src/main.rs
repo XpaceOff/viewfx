@@ -38,8 +38,8 @@ async fn main() {
       // TODO: You might need a way to get the port that Tauri is running on.
       // If not then the app won't work because of the CORS problem
       CorsLayer::new()
-      .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
-      //.allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap())
+      //.allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
+      .allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap())
       .allow_methods([Method::GET]),
     );
   
@@ -68,6 +68,8 @@ async fn main() {
 
 // Read image and returns it through the http bridge
 async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
+
+  const CREATE_NO_WINDOW: u32 = 0x08000000;
 
   use std::time::Instant;
   let start_time = Instant::now();
@@ -122,6 +124,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
         .arg("-")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn(){
           Ok(out) => out,
           Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
@@ -248,6 +251,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 }
 
 use std::process::{Command, Stdio};
+use std::os::windows::process::CommandExt;
 use regex::Regex;
 use std::path::Path;
 async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(StatusCode, Json<VideoMetadata>), (StatusCode, String)> {
@@ -259,6 +263,8 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     timecode: "".to_string(),
     frame_length: 0,
   };
+
+  const CREATE_NO_WINDOW: u32 = 0x08000000;
 
   print!("Video Path: {:?}", &payload.video_full_path);
 
@@ -283,6 +289,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     .arg("-")
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
+    .creation_flags(CREATE_NO_WINDOW)
     .spawn(){
       Ok(out) => out,
       Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
