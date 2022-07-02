@@ -36,6 +36,20 @@ import { join } from "@tauri-apps/api/path";
         preList = await fs.readDir($modalSelectedDirPath);
         console.log("Current folder files", preList);
 
+        // Personalise compare function to help sort the list of files
+        function compare( a, b ) {
+            if ( a.name < b.name ){
+                return -1;
+            }
+            if ( a.name > b.name ){
+                return 1;
+            }
+            return 0;
+        }
+
+        // Make sure to sort the files list before anithing so I can get the correct seq range.
+        preList.sort(compare);
+
         for (const i in preList){
 
             // Is it's a folder
