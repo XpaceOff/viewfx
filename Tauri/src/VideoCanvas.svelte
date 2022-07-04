@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
-    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg } from "./stores";
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort } from "./stores";
     import axios from "axios";
 
     export let parentW;
@@ -148,7 +148,7 @@
                 console.log(currentMedia.path);
 
                 try {
-                    const data_from_rust = await axios.get('http://localhost:3000/video_metadata', {
+                    const data_from_rust = await axios.get('http://'+$addrAndPort+'/video_metadata', {
                         params: {
                             video_full_path: currentMedia.path,
                         }
@@ -281,7 +281,7 @@
 
             //console.log(" # queryParams: ", queryParams);
 
-            axios.get('http://localhost:3000/image_raw_data', {
+            axios.get('http://'+$addrAndPort+'/image_raw_data', {
                 //headers: {
                 //    "Origin": [""],
 			    //    "Access-Control-Allow-Origin": "*",

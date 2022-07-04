@@ -68,3 +68,5 @@ export const isCanvasAutoReload = writable(false);
 // If this is true then the image to be load will be 
 // 100% loaded to the canvas no matter the size of the window
 export const isLoadFullImg = writable(false);
+
+export const addrAndPort = writable("127.0.0.1:3000");

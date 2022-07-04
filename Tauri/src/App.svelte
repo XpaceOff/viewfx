@@ -5,7 +5,13 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort } from './stores'
+	import { invoke } from '@tauri-apps/api/tauri'
+
+	invoke('get_bg_addr').then((addr_and_port) => {
+		$addrAndPort = addr_and_port;
+		console.log(addr_and_port)
+	});
 	
 	//let newImg = imagedata_to_image(currentImageData);
 
