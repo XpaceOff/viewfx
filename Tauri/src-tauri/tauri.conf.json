@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "viewfx",
-    "version": "0.9.6"
+    "version": "0.9.7"
   },
   "tauri": {
     "allowlist": {
@@ -75,7 +75,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 650,
+        "height": 750,
         "resizable": true,
         "title": "ViewFX",
         "width": 1000
