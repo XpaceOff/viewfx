@@ -3,6 +3,17 @@
   windows_subsystem = "windows"
 )]
 
+// Use Tauri States to set and then get the address:port
+use tauri::State;
+struct BgAddrState(String);
+
+// Function that return the backend address and port.
+#[tauri::command]
+fn get_bg_addr(state: State<BgAddrState>) -> String {
+  println!("state: {}", state.0);
+  state.0.clone()
+}
+
 use axum::{
   routing::{get},
   http::{StatusCode, Method, HeaderValue},
@@ -13,16 +24,21 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use image::GenericImageView;
 use tower_http::cors::CorsLayer;
+use std::sync::{Arc, Mutex};
 
 // Make the main function Async with Tokio
 #[tokio::main]
 async fn main() {
 
+  // variable containing addr:port of backend.
+  let addr_data = Arc::new(Mutex::new(String::from("")));
+  let addr_data_clone= Arc::clone(&addr_data); // clone it to be able to access it on different threads.
+
   // Create a new thread that will run the backend-api/http-bridge
   // to load Images. This solve the bottleneck on Tauri's IPC
   // Check https://github.com/tauri-apps/tauri/discussions/4191
   // for more info about the problem
-  tokio::spawn(async {
+  tokio::spawn(async move {
 
     // build our application with routes
     let app = Router::new()
@@ -43,15 +59,29 @@ async fn main() {
       .allow_methods([Method::GET]),
     );
   
+    // Set the port to `0` to get a random unused port.
+    let addr = SocketAddr::from(([127, 0, 0, 1], 0));
+    
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("# http bridge listening on {}", addr);
+    let bg_server = axum::Server::bind(&addr)
+      .serve(app.into_make_service());
+      //.await.unwrap();
 
-    axum::Server::bind(&addr)
-      .serve(app.into_make_service())
-      .await
-      .unwrap();
+    let bg_addr = bg_server.local_addr().to_string().clone();
+
+    // Make a new scope to lock `addr_data_clone`; get the value, and then drop it.
+    // If these {} are removed then the code won't compile because `addr_data_clone` won't be unlocked.
+    // therefore you won't be able to read it later.
+    // To force the unlock make a new scope.
+    {
+      let mut tmp_locked_addr = addr_data_clone.lock().unwrap();
+      *tmp_locked_addr = bg_addr.clone();
+      println!("# http bridge listening on {}", bg_addr.clone());
+    }
+
+    // Start the bridge backend server.
+    bg_server.await.unwrap();
   });
 
   // share the current runtime with Tauri
@@ -59,9 +89,25 @@ async fn main() {
   // For more info
   tauri::async_runtime::set(tokio::runtime::Handle::current());
 
+  // Wait for backend bridge to have a port and be ready so I can send it to the frontend
+  // with Tauri's States.
+  let addr_data_clone = Arc::clone(&addr_data);
+  let final_bg_addr;
+  loop {
+    let addr_data_clone = addr_data_clone.lock().unwrap();
+    let addr_obtained = &*addr_data_clone;
+    
+    // Once it changes (gets a port) then build th Tauri app.
+    if !(addr_obtained.eq("")) { 
+      final_bg_addr = addr_data_clone.clone();
+      break;
+    }
+  }
+
   tauri::Builder::default()
     //.menu(menu)
-    //.invoke_handler(tauri::generate_handler![close_splashscreen])
+    .manage(BgAddrState(final_bg_addr.into())) // Sets the bridge port with Tauri's States
+    .invoke_handler(tauri::generate_handler![get_bg_addr])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -124,7 +170,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
         .arg("-")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .creation_flags(CREATE_NO_WINDOW)
+        //.creation_flags(CREATE_NO_WINDOW) // Un-comment this for a Windows build.
         .spawn(){
           Ok(out) => out,
           Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
@@ -251,7 +297,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
 }
 
 use std::process::{Command, Stdio};
-use std::os::windows::process::CommandExt;
+//use std::os::windows::process::CommandExt;
 use regex::Regex;
 use std::path::Path;
 async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(StatusCode, Json<VideoMetadata>), (StatusCode, String)> {
@@ -289,7 +335,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     .arg("-")
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
-    .creation_flags(CREATE_NO_WINDOW)
+    //.creation_flags(CREATE_NO_WINDOW) // Un-comment this for a Windows build.
     .spawn(){
       Ok(out) => out,
       Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
