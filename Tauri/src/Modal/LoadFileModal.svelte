@@ -236,7 +236,7 @@ import { join } from "@tauri-apps/api/path";
                                 currentPathHisIndex += 1;
                                 reloadFiles();
                             }}
-                            class="{ qaDir[1] == $modalSelectedDirPath ? 'text-sky-500 bg-zinc-700' : 'text-zinc-400' } flex w-full h-6 mt-1 px-2 items-center hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none"
+                            class="{ qaDir[1] == $modalSelectedDirPath ? 'text-sky-500 bg-zinc-700' : 'text-zinc-400' } flex w-full h-6 mt-1 px-2 items-center hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none cursor-pointer"
                         >
                             <i class="fa-solid fa-folder mr-1"></i>
                             <p>{qaDir[0]}</p>
@@ -267,7 +267,7 @@ import { join } from "@tauri-apps/api/path";
                                         reloadFiles();
                                         //currentDirList = dirPathChanged();
                                     }}
-                                    class="flex w-full h-6 mt-1 px-2 items-center text-zinc-400 hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none">
+                                    class="flex w-full h-6 mt-1 px-2 items-center text-zinc-400 hover:bg-zinc-800 rounded-l-md hover:text-sky-500 select-none cursor-pointer">
                                     <i class="fa-solid fa-folder mr-1"></i>
                                     <p>{nFile.name}</p>
                                 </div>
@@ -280,7 +280,7 @@ import { join } from "@tauri-apps/api/path";
                                         console.log("Selected: ", nFile);
                                         
                                     }}
-                                    class="{selectedFileIndex == i ? 'bg-zinc-700' : ''} flex w-full h-6 mt-1 px-2 items-center text-zinc-400 rounded-l-md hover:text-sky-500 select-none">
+                                    class="{selectedFileIndex == i ? 'bg-zinc-700' : ''} flex w-full h-6 mt-1 px-2 items-center text-zinc-400 rounded-l-md hover:text-sky-500 select-none cursor-pointer">
                                     <i class="fa-solid fa-file mr-1"></i>
                                     <p>{nFile.name}</p>
                                 </div>

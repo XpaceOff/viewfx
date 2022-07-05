@@ -67,5 +67,6 @@
 		/* this will apply to <body> */
 		background: #27272A;
 		padding: 3px;
+		user-select: none;
 	}
 </style>
