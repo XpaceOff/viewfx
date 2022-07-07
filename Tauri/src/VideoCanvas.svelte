@@ -2,6 +2,8 @@
 	import { onMount, onDestroy } from 'svelte';
     import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
     import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort } from "./stores";
+    import WorkerBuilder from "./workers/worker-builder";
+    import workerFile from "./workers/cacheWorker";
     import axios from "axios";
 
     export let parentW;
@@ -280,6 +282,19 @@
             }
 
             //console.log(" # queryParams: ", queryParams);
+
+            if (window.Worker){
+                //const cacheWorker = new Worker("workers/cacheWorker.js", { type: "module"});
+                var cacheWorker = new WorkerBuilder(workerFile);
+
+                cacheWorker.postMessage([queryParams, $addrAndPort]);
+                console.log('Message posted to worker');
+
+                cacheWorker.onmessage = function(e) {
+                    console.log(e.data);
+                    console.log('Message received from worker');
+                }
+            }
 
             axios.get('http://'+$addrAndPort+'/image_raw_data', {
                 //headers: {
