@@ -288,15 +288,45 @@
                 var cacheWorker = new WorkerBuilder(workerFile);
 
                 cacheWorker.postMessage([queryParams, $addrAndPort]);
-                console.log('Message posted to worker');
+                //console.log('Message posted to worker');
 
                 cacheWorker.onmessage = function(e) {
-                    console.log(e.data);
-                    console.log('Message received from worker');
+                    //console.log(e.data);
+                    //console.log('Message received from worker');
+
+                    // Push an array of the image's raw data into rawImageFrames
+                    //let raw = e.data.image_raw_data;
+                    let r_imgDimensions = e.data.img_dimensions;
+                    let r_currentFrame = e.data.frame_number;
+
+                    cW = r_imgDimensions[0];
+                    cH = r_imgDimensions[1];
+
+                    if (cMediaSlot == 'A'){
+                        // Save the images paths into the array
+                        rawImageFramesA.push([e.data.image_raw_data, r_imgDimensions]);
+        
+                        // Save the right order of frames
+                        rawImageFramesOrderA[r_currentFrame - $videoStartFrame] = rawImageFramesA.length - 1;
+        
+                        // Update the bar cache status to 1 (cached)
+                        $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
+                    }
+
+                    if (cMediaSlot == 'B'){
+                        // Save the images paths into the array
+                        rawImageFramesB.push([e.data.image_raw_data, r_imgDimensions]);
+        
+                        // Save the right order of frames
+                        rawImageFramesOrderB[r_currentFrame - $videoStartFrame] = rawImageFramesB.length - 1;
+        
+                        // Update the bar cache status to 1 (cached)
+                        $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 2;
+                    }
                 }
             }
 
-            axios.get('http://'+$addrAndPort+'/image_raw_data', {
+            /*axios.get('http://'+$addrAndPort+'/image_raw_data', {
                 //headers: {
                 //    "Origin": [""],
 			    //    "Access-Control-Allow-Origin": "*",
@@ -350,7 +380,9 @@
                 // Update the bar cache status to 0 (error)
                 if (cMediaSlot == 'A') $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 3;
                 if (cMediaSlot == 'B') $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 3;
-            });
+            });*/
+
+
         }
 
         $mediaToBeImported = "";
