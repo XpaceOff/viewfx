@@ -54,9 +54,9 @@ async fn main() {
       // TODO: You might need a way to get the port that Tauri is running on.
       // If not then the app won't work because of the CORS problem
       CorsLayer::new()
-      .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap()) // Dev Mode
+      //.allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap()) // Dev Mode
       //.allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap()) // Win build mode
-      //.allow_origin("tauri://localhost".parse::<HeaderValue>().unwrap()) // Macos built mode
+      .allow_origin("tauri://localhost".parse::<HeaderValue>().unwrap()) // Macos built mode
       .allow_methods([Method::GET]),
     );
   
@@ -149,7 +149,7 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
       // Execute ffmpeg
       //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
       //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
-      let ffmpeg_command = "ffmpeg";
+      let ffmpeg_command = "/usr/local/bin/ffmpeg";
       let cmd = match Command::new(ffmpeg_command)
         //.arg("-hwaccel")
         //.arg("cuda")
@@ -319,7 +319,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   print!("Video Path: {:?}", &payload.video_full_path);
 
   if !(Path::new(&payload.video_full_path).is_file()){
-    return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path.")) );
+    return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path. \n Path: {:?}", &payload.video_full_path)) );
   }
 
   println!("# Calling CMD");
@@ -327,7 +327,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   // Execute ffmpeg
   //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
   //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
-  let ffmpeg_command = "ffmpeg";
+  let ffmpeg_command = "/usr/local/bin/ffmpeg";
   let cmd = match Command::new(ffmpeg_command)
     .arg("-i")
     .arg(&payload.video_full_path)
@@ -345,7 +345,7 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
     //.creation_flags(CREATE_NO_WINDOW) // Un-comment this for a Windows build.
     .spawn(){
       Ok(out) => out,
-      Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
+      Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("Error executing FFmpeg. \n{:?}", err)) )
     };
 
   println!("# CMD called. Waiting...");
