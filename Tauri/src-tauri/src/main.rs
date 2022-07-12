@@ -147,7 +147,10 @@ async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCo
       println!("# Calling CMD");
       // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
       // Execute ffmpeg
-      let cmd = match Command::new("tmpffmpeg/ffmpeg.exe")
+      //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
+      //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
+      let ffmpeg_command = "ffmpeg";
+      let cmd = match Command::new(ffmpeg_command)
         //.arg("-hwaccel")
         //.arg("cuda")
         //.arg("-hwaccel_output_format")
@@ -322,7 +325,10 @@ async fn http_get_video_metadata(payload: Query<MetadataQuery>) -> Result<(Statu
   println!("# Calling CMD");
   // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
   // Execute ffmpeg
-  let cmd = match Command::new("tmpffmpeg/ffmpeg.exe")
+  //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
+  //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
+  let ffmpeg_command = "ffmpeg";
+  let cmd = match Command::new(ffmpeg_command)
     .arg("-i")
     .arg(&payload.video_full_path)
     .arg("-vf")
