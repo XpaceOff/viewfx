@@ -64,3 +64,18 @@ plugins: [
 				},
 			}),
 ```
+
+---
+
+## How I compiled ffmpeg
+
+### On MacOS
+
+```bash
+$ git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+$ brew install fdk-aac
+
+$ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --disable-libx264 --disable-libx265 --enable-libopus --disable-libxvid --disable-chromaprint --enable-libopenjpeg --enable-libaom --extra-ldflags=-L/usr/local/lib --samples=fate-suite/
+
+$ make
+```
