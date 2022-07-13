@@ -5,13 +5,18 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize, addrAndPort } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar } from './stores'
 	import { invoke } from '@tauri-apps/api/tauri'
+	import { path } from "@tauri-apps/api"
 
+	// Get the backend bridge's ip and port.
 	invoke('get_bg_addr').then((addr_and_port) => {
 		$addrAndPort = addr_and_port;
 		console.log(addr_and_port)
 	});
+
+	// Sets the OS separator character.
+	$osSepChar = path.sep;
 	
 	//let newImg = imagedata_to_image(currentImageData);
 

@@ -1,6 +1,6 @@
 <script>
     import { fs, path } from "@tauri-apps/api"
-    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported, videoTotalFrameLength } from "../stores";
+    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported, videoTotalFrameLength, osSepChar } from "../stores";
     import StdModalContainer from "./StdModalContainer.svelte";
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
     import { getQuickAccessDirs } from "../dirFunctions/quickAccess";
@@ -195,10 +195,10 @@ import { join } from "@tauri-apps/api/path";
                 on:click={() => {
                     let tmpCurrentPath = $modalSelectedDirPath;
 
-                    if (tmpCurrentPath[tmpCurrentPath.length-1] == '\\')
+                    if (tmpCurrentPath[tmpCurrentPath.length-1] == $osSepChar)
                         tmpCurrentPath = tmpCurrentPath.slice(0,-1);
 
-                    tmpCurrentPath = tmpCurrentPath.split('\\').slice(0, tmpCurrentPath.split('\\').length-1).join('\\');
+                    tmpCurrentPath = tmpCurrentPath.split($osSepChar).slice(0, tmpCurrentPath.split($osSepChar).length-1).join($osSepChar);
 
                     $modalSelectedDirPath = tmpCurrentPath;
                     reloadFiles();

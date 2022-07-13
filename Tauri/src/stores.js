@@ -2,6 +2,11 @@
 
 import { writable } from 'svelte/store';
 
+// Contains the platform-specific path segment separator:
+// `\` on Windows
+// `/` on POSIX
+export const osSepChar = writable('\\');
+
 export const mediaToBeImported = writable("");
 
 // This two variables shows which img is shown on canvas
