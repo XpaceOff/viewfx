@@ -26,6 +26,8 @@ use image::GenericImageView;
 use tower_http::cors::CorsLayer;
 use std::sync::{Arc, Mutex};
 
+mod viewvid;
+
 // Make the main function Async with Tokio
 #[tokio::main]
 async fn main() {
@@ -44,7 +46,8 @@ async fn main() {
     let app = Router::new()
     .route("/", get(|| async { "ViewFX" }))
     .route("/image_raw_data", get(http_get_image_raw_data))
-    .route("/video_metadata", get(http_get_video_metadata))
+    //.route("/video_metadata", get(http_get_video_metadata))
+    .route("/video_metadata", get(viewvid::http_get_vid_metadata))
     .layer(
       // CORS Middleware that solves the CORS problem
       // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
@@ -54,9 +57,9 @@ async fn main() {
       // TODO: You might need a way to get the port that Tauri is running on.
       // If not then the app won't work because of the CORS problem
       CorsLayer::new()
-      //.allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap()) // Dev Mode
+      .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap()) // Dev Mode
       //.allow_origin("https://tauri.localhost".parse::<HeaderValue>().unwrap()) // Win build mode
-      .allow_origin("tauri://localhost".parse::<HeaderValue>().unwrap()) // Macos built mode
+      //.allow_origin("tauri://localhost".parse::<HeaderValue>().unwrap()) // Macos built mode
       .allow_methods([Method::GET]),
     );
   
