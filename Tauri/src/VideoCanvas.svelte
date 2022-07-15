@@ -92,58 +92,103 @@
             // Clear canvas 
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // If it's a seq
-            if (currentMedia.seqLength > 0){
-                let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
+            console.log(currentMedia.file_type);
 
-                if (splitedName.length == 5){ // Just making sure
-                    console.log("HERE-03");
+            // If it's a Image/images
+            if (currentMedia.file_type == "IMG"){
 
-                    let imgFrom = parseInt(splitedName[2]);
-                    let imgTo = parseInt(splitedName[3]);
+                console.log("It's a image");
 
-                    $videoTotalFrameLength = imgTo-imgFrom;
-                    $videoStartFrame = imgFrom;
+                // If it's a seq
+                if (currentMedia.seqLength > 1){
+                    console.log("It's a image sequence");
 
-                    // Save the initial frame range. This is useful
-                    // so before media B is loaded we can check that
-                    // the length of media B match media A
+                    let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
+
+                    if (splitedName.length == 5){ // Just making sure
+                        console.log("HERE-03");
+
+                        let imgFrom = parseInt(splitedName[2]);
+                        let imgTo = parseInt(splitedName[3]);
+
+                        $videoTotalFrameLength = imgTo-imgFrom;
+                        $videoStartFrame = imgFrom;
+
+                        // Save the initial frame range. This is useful
+                        // so before media B is loaded we can check that
+                        // the length of media B match media A
+                        initFrameRange = $videoTotalFrameLength;
+
+                        for (let x=0; x<=$videoTotalFrameLength; x++){
+                            let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                            let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
+                            tmpImageName = tmpImageName.replace(/\\/g, '/');
+
+                            if ($mediaToBeImported == 'A'){
+                                // Create the array of image paths
+                                seqImgPathsA.push(tmpImageName);
+
+                                // Create the array that will contain the right order of frames already cached
+                                rawImageFramesOrderA.push(0);
+
+                                // Update the bar cache status to 0 (non-cached)
+                                $barFrameCacheStatusA.push(0);
+
+                                // 
+                                rawImageFramesDiff.push(null);
+                            }
+
+                            if ($mediaToBeImported == 'B'){
+                                // Create the array of image paths
+                                seqImgPathsB.push(tmpImageName);
+
+                                // Create the array that will contain the right order of frames already cached
+                                rawImageFramesOrderB.push(0);
+
+                                // Update the bar cache status to 0 (non-cached)
+                                $barFrameCacheStatusB.push(0);
+                            }
+
+                        }
+                    }
+                }
+                else{ // If not, it's a single image 
+                    console.log("It's a single image");
+                    console.log("CurrentMedia: ", currentMedia);
+
+                    $videoTotalFrameLength = 0;
+                    $videoStartFrame = 1;
+
                     initFrameRange = $videoTotalFrameLength;
 
-                    for (let x=0; x<=$videoTotalFrameLength; x++){
-                        let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
-                        let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
-                        tmpImageName = tmpImageName.replace(/\\/g, '/');
+                    if ($mediaToBeImported == 'A'){
+                        // Create the array of image paths
+                        seqImgPathsA.push(currentMedia.path);
 
-                        if ($mediaToBeImported == 'A'){
-                            // Create the array of image paths
-                            seqImgPathsA.push(tmpImageName);
+                        // Create the array that will contain the right order of frames already cached
+                        rawImageFramesOrderA.push(0);
 
-                            // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderA.push(0);
+                        // Update the bar cache status to 0 (non-cached)
+                        $barFrameCacheStatusA.push(0);
 
-                            // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusA.push(0);
-
-                            // 
-                            rawImageFramesDiff.push(null);
-                        }
-
-                        if ($mediaToBeImported == 'B'){
-                            // Create the array of image paths
-                            seqImgPathsB.push(tmpImageName);
-
-                            // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderB.push(0);
-
-                            // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusB.push(0);
-                        }
-
+                        // 
+                        rawImageFramesDiff.push(null);
                     }
 
-                    imgTypeToLoadFrom = "FROM_IMG";
+                    if ($mediaToBeImported == 'B'){
+                        // Create the array of image paths
+                        seqImgPathsB.push(currentMedia.path);
+
+                        // Create the array that will contain the right order of frames already cached
+                        rawImageFramesOrderB.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        $barFrameCacheStatusB.push(0);
+                    }
+
                 }
+
+                imgTypeToLoadFrom = "FROM_IMG";
             }
             else{ // If don't then it's a video file.
                 console.log("It's a video file!");
@@ -156,7 +201,7 @@
                         }
                     });
 
-                    console.log("Frame lebgth: ", data_from_rust.data.frame_length);
+                    console.log("Frame length: ", data_from_rust.data.frame_length);
                     $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
                     //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
                     $videoStartFrame = 0;

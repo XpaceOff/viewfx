@@ -31,7 +31,9 @@ import { join } from "@tauri-apps/api/path";
         let preList = [];   // List of files returned from Turi's API
         let rList = [];     // List to be returned
         let seqList = [];   // tmp list containing img seqs. Once I know the n seq these will be push to rList
-        let imgFilter = /((.png)|(.exr)|(.jpeg)|(.gif)|(.bmp)|(.ico)|(.jpg)|(.mov))$/g; // File formats acepted by ViewFX
+        let imgFilter = "(.png)|(.exr)|(.jpeg)|(.gif)|(.bmp)|(.ico)|(.jpg)"; // File formats acepted by ViewFX
+        let vidFilter = "(.mov)|(.mp4)|(.avi)|(.mvk)";
+        let acceptedFormats = new RegExp("(" + imgFilter + "|" + vidFilter + ")$", "g");
 
         preList = await fs.readDir($modalSelectedDirPath);
         console.log("Current folder files", preList);
@@ -58,10 +60,11 @@ import { join } from "@tauri-apps/api/path";
             } else{ // If not, it's a file
 
                 // Only show supported files
-                if (preList[i].name.match(imgFilter)){
+                if (preList[i].name.match(acceptedFormats)){
 
                     // Check if the image have a seq format
-                    let tmpSeqMatch = preList[i].name.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
+                    let imgSeqFormat = new RegExp("^(.+?)([0-9]+)("+imgFilter+")$");
+                    let tmpSeqMatch = preList[i].name.match(imgSeqFormat); //(/^(.+?)([0-9]+)\.(.{3,4})$/);
 
                     // If so, push it to the seqList to be analized later.
                     if (tmpSeqMatch){
@@ -71,6 +74,17 @@ import { join } from "@tauri-apps/api/path";
                     }
                     else{// Otherwise, just push it because it's either a video or a single image.
                         preList[i].seqLength = 0;
+
+                        let rx_img_filter = new RegExp("^(.+?)("+imgFilter+")$");
+                        if (preList[i].name.match(rx_img_filter)){
+                            preList[i].file_type = "IMG";
+                        }
+                        else{
+                            preList[i].file_type = "VID";
+                        }
+
+                        console.log(preList[i]);
+
                         rList.push(preList[i]);
                     }
                     //console.log(preList[i].name.split('.'));
@@ -127,6 +141,7 @@ import { join } from "@tauri-apps/api/path";
 
                     seqList[nImg][1].name = seqList[nImg][2];
                     seqList[nImg][1].seqLength = nCurrent - nStart + 1;
+                    seqList[nImg][1].file_type = "IMG";
                     rList.push(seqList[nImg][1]);
                 }
 

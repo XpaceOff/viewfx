@@ -5,13 +5,17 @@ export default () => {
         //console.log('Message received from main script');
         const workerResult = 'Result: ' + (e.data[1]);
 
-        //const url ='http://'+e.data[1]+'/image_raw_data?src_img_type='+e.data[0].src_img_type+'&load_full_img='+e.data[0].load_full_img+'&img_full_path='+e.data[0].img_full_path+'&frame_number='+e.data[0].frame_number+'&canvas_w='+e.data[0].canvas_w+'&canvas_h='+e.data[0].canvas_h;
-        const url ='http://'+e.data[1]+'/video_frame?load_full_img='+e.data[0].load_full_img+'&img_full_path='+e.data[0].img_full_path+'&frame_number='+e.data[0].frame_number+'&canvas_w='+e.data[0].canvas_w+'&canvas_h='+e.data[0].canvas_h;
+        let bridge_url = '';
+        if (e.data[0].src_img_type == "FROM_VIDEO")
+            bridge_url = 'http://'+e.data[1]+'/video_frame?load_full_img='+e.data[0].load_full_img+'&img_full_path='+e.data[0].img_full_path+'&frame_number='+e.data[0].frame_number+'&canvas_w='+e.data[0].canvas_w+'&canvas_h='+e.data[0].canvas_h;
+        else
+            bridge_url = 'http://'+e.data[1]+'/image_raw_data?src_img_type='+e.data[0].src_img_type+'&load_full_img='+e.data[0].load_full_img+'&img_full_path='+e.data[0].img_full_path+'&frame_number='+e.data[0].frame_number+'&canvas_w='+e.data[0].canvas_w+'&canvas_h='+e.data[0].canvas_h;
+
         const options = {
             method: "GET"
         };
 
-        fetch(url, options)
+        fetch(bridge_url, options)
         /*.then((response) => {
             console.log(response);
         });*/
@@ -31,7 +35,7 @@ export default () => {
             });
         });
 
-        console.log('Posting message back to main script');
+        //console.log('Posting message back to main script');
         //postMessage(workerResult);
     }
 }
