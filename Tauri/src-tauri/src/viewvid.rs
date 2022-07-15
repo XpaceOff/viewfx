@@ -78,11 +78,12 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
     let mut dec_sec: f64 = 0.0;
 
     // Regex Filter Object
-    let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
+    let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+(?:\.\d+)?) fps").unwrap();
     for n_line in err_output {
 
         // Width, Height, and FPS are stored in a line that contains the word "Stream".
         if n_line.contains("Stream "){
+            println!("# Stream line: {:?}", n_line);
             let tmp_meta = match rx_filter.captures(n_line) {
                 Some(r) => {
                     let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0.0, timecode: "".to_string(), frame_length: 0 };
