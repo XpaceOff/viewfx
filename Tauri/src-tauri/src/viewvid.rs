@@ -2,24 +2,23 @@ use axum::{
     http::{ StatusCode },
     Json, 
     extract::Query
-  };
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct MetadataQuery {
-  video_full_path: String,
+    video_full_path: String,
 }
 
 #[derive(Serialize)]
 pub struct VideoMetadata {
-  width: u32,
-  height: u32,
-  fps: f64,
-  timecode: String,
-  frame_length: usize,
+    width: u32,
+    height: u32,
+    fps: f64,
+    timecode: String,
+    frame_length: usize,
 }
 
-use std::process::{Command, Stdio};
 //use std::os::windows::process::CommandExt;
 use regex::Regex;
 use std::path::Path;
@@ -136,4 +135,129 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
     println!("# Metadata: {:?}x{:?} @{:?}fps, {:?} / {:?} frames", img_metadata.width, img_metadata.height, img_metadata.fps, img_metadata.timecode, img_metadata.frame_length);
     
     Ok( (StatusCode::OK, Json(img_metadata)) )
+}
+
+use std::process::{Command, Stdio};
+
+// Read image and returns it through the http bridge
+pub async fn http_get_vid_frame(payload: Query<VidFrameQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
+    use std::time::Instant;
+    let start_time = Instant::now();
+
+    let img_full_path = payload.img_full_path.clone();
+    
+    let load_full_img = payload.load_full_img;
+    let frame_number = payload.frame_number;
+    let canvas_w = payload.canvas_w;
+    let canvas_h = payload.canvas_h;
+
+    println!("# Canva's size is {}x{}", canvas_w, canvas_h);
+
+    // TODO: Make sure that this number does not lead to a security issue.
+    // Set the image to load
+    println!("# Image full path: {}", img_full_path);
+
+    // Make sure that the img to be load is actually a file.
+    if !(Path::new(&img_full_path).is_file()){
+        return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path.")) );
+    }
+
+    let sidecar_ffmpeg = crate::viewos::relative_command_path("./ffmpeg".to_string()).unwrap();
+    println!(" sidecar: {:#?}", sidecar_ffmpeg);
+
+    println!("# Calling CMD");
+
+    // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
+    // Execute ffmpeg
+    let cmd = match Command::new(sidecar_ffmpeg)
+        //.arg("-hwaccel")
+        //.arg("cuda")
+        //.arg("-hwaccel_output_format")
+        //.arg("cuda")
+        //.arg("-init_hw_device")
+        //.arg("vulkan")
+        .arg("-i")
+        .arg(&img_full_path)
+        .arg("-vf")
+        .arg( format!("select=eq(n\\,{})", frame_number) )
+        //.arg("-filter_complex")
+        //.arg( format!("[0:v]select=eq(n\\,{}), scale={}:{}, extractplanes=r", frame_number, canvas_w, canvas_h) )
+        //.arg("extractplanes=r+g+b+a")
+        .arg("-f")
+        .arg("rawvideo")
+        //.arg("image2pipe")
+        .arg("-pix_fmt")
+        .arg("rgba")
+        .arg("-vframes")
+        .arg("1")
+        .arg("-")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        //.creation_flags(CREATE_NO_WINDOW) // Un-comment this for a Windows build.
+        .spawn(){
+            Ok(out) => out,
+            Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
+        };
+
+    println!("# CMD called. Waiting...");
+
+    // Wait for the command to complete.
+    let cmd_result = match cmd.wait_with_output(){
+        Ok(out) => out,
+        Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error while waiting for ffmpeg. {:?}", err) ))
+    };
+
+    // Once it's completed transform the stderr ( where the metadata info is stored in )
+    let err_output = match std::str::from_utf8(&cmd_result.stderr) {
+        Ok(out) => {out},
+        Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error getting metadata. {:?}", err)) )
+    };
+
+    // Regex Filter Object - Get image dimensions.
+    let rx_filter = Regex::new(r" (\d+)x(\d+),([[:ascii:]]+) (\d+) fps").unwrap();
+    let img_dimensions: (u32, u32) = match rx_filter.captures(err_output){
+        Some(rx_result) => {
+            if rx_result.len() == 5{
+                (rx_result.get(1).unwrap().as_str().parse().unwrap(), rx_result.get(2).unwrap().as_str().parse().unwrap())
+            }
+            else{
+                return Err( (StatusCode::INTERNAL_SERVER_ERROR , format!("Error getting image resolution.")) )
+            }
+        },
+        _ => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("Error getting image dimensions.")) )
+    };
+
+    //println!("# Image dimensions: {:?}", img_dimensions);
+    
+    let image_r = ImageResult {
+        image_raw_data: cmd_result.stdout,
+        frame_number: frame_number,
+        //img_dimensions: (canvas_w, canvas_h),
+        img_dimensions: img_dimensions, //img.dimensions(),
+    };
+
+    println!("Pixels length: {}", &image_r.image_raw_data.len());
+
+    let end_time = start_time.elapsed();
+    println!("{:.3?}", end_time);
+    
+    // Return the image
+    Ok( (StatusCode::OK, Json(image_r)) )
+
+}
+
+#[derive(Deserialize)]
+pub struct VidFrameQuery {
+    load_full_img: bool,
+    img_full_path: String,
+    frame_number: u32,
+    canvas_w: u32,
+    canvas_h: u32,
+}
+
+#[derive(Serialize)]
+pub struct ImageResult {
+    image_raw_data: Vec<u8>,
+    frame_number: u32,
+    img_dimensions: (u32, u32),
 }

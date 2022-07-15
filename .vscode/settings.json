@@ -2,5 +2,9 @@
     "rust-analyzer.linkedProjects": [
         "Tauri/src-tauri/Cargo.toml",
         "Tests/ffmpeg-pipe-test/Cargo.toml"
+    ],
+    "cSpell.words": [
+        "cuda",
+        "vulkan"
     ]
 }
