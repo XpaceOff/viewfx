@@ -10,6 +10,8 @@
 
 <div class="flex flex-col w-full h-full">
     <div class="flex w-full h-2/6 py-0.5">
+
+        <!-- Start Frame Text-->
         <div class="flex w-12 h-full select-none justify-center items-center py-0.5 px-1">
             <div class="flex w-full h-full justify-center items-center bg-zinc-900/50 rounded-sm">
                 {$videoStartFrame}
@@ -25,7 +27,7 @@
                 <BarHandle parentW={barWidth} parentH={barHeight}></BarHandle>
 
                 <!-- Frame Numbers -->
-                <div class="flex w-full h-4/6 px-2">
+                <div class="flex w-full h-4/6">
                     {#each $barFrameCacheStatusA as frameNumber, i}
                         <div class="flex w-full items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}">
                             <div class=" -ml-1 select-none scale-75">
@@ -46,7 +48,7 @@
                 <div class="flex flex-col w-full h-2/6">
 
                     <!-- Frame lines -->
-                    <div class="flex w-full h-full px-2">
+                    <div class="flex w-full h-full">
                         {#each $barFrameCacheStatusA as frameNumber, i}
                             <div class="flex w-full"></div>
                             <div class="flex w-full border-l {i == $videoCurrentFrame ? 'border-purple-400' : 'border-zinc-400'}"></div>
@@ -54,7 +56,7 @@
                     </div>
 
                     <!-- Cache progress bar -->
-                    <div class="flex flex-row w-full h-[1px] min-h-0 px-2 opacity-90">
+                    <div class="flex flex-row w-full h-[1px] min-h-0 opacity-90">
                         {#each $barFrameCacheStatusA as cFrameCacheStatus, i}
                             {#if i==0}
                                 <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
@@ -82,6 +84,7 @@
             </div>
         </div>
 
+        <!-- Last Frame Text-->
         <div class="flex w-12 h-full select-none justify-center items-center py-0.5 px-1">
             <div class="flex w-full h-full justify-center items-center bg-zinc-900/50 rounded-sm">
                 {$videoStartFrame+$videoTotalFrameLength}
