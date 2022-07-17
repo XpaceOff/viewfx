@@ -36,6 +36,8 @@ fn no_console(cmd: &mut Command) -> &mut Command {
 use regex::Regex;
 use std::path::Path;
 pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(StatusCode, Json<VideoMetadata>), (StatusCode, String)> {
+    
+    // Image metadata that will be returned at the end.
     let mut img_metadata = VideoMetadata {
         width: 0,
         height: 0,
@@ -56,7 +58,7 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
     //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
     //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
     //let ffmpeg_command = "bin/ffmpeg";
-    let cmd_output = match tauri::api::process::Command::new_sidecar("ffmpeg").unwrap()
+    let cmd_output = match tauri::api::process::Command::new_sidecar("./ffmpeg").unwrap()
         .args([
             "-i",
             &payload.video_full_path,
@@ -82,7 +84,7 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
 
     let err_output = cmd_output.stderr.lines();
 
-    // Variables that help me get the frame length.
+    // Variables to help me get the frame length.
     let mut hrs: f64 = 0.0;
     let mut min: f64 = 0.0;
     let mut sec: f64 = 0.0;
@@ -94,9 +96,11 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
 
         // Width, Height, and FPS are stored in a line that contains the word "Stream".
         if n_line.contains("Stream "){
-            println!("# Stream line: {:?}", n_line);
+            //println!("# Stream line: {:?}", n_line);
+
             let tmp_meta = match rx_filter.captures(n_line) {
                 Some(r) => {
+                    //println!("# Stream capture: {:#?}", r);
                     let mut r_meta = VideoMetadata { width: 0, height: 0, fps: 0.0, timecode: "".to_string(), frame_length: 0 };
                     if r.len() == 5{
                         r_meta = VideoMetadata{
@@ -120,15 +124,20 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
             };
 
             if tmp_meta.width > 0 && tmp_meta.height > 0 && tmp_meta.fps > 0.0 {
-                img_metadata = tmp_meta;
+                img_metadata = VideoMetadata {
+                    timecode: img_metadata.timecode,
+                    ..tmp_meta
+                };
             }
         }
 
         if n_line.contains("Duration"){
+            //println!("# 'Duration' line: {:?}", n_line);
             let rx_timecode = Regex::new(r"Duration: ((\d+):(\d+):(\d+).(\d+)),").unwrap();
 
             let _tmp_timecode = match rx_timecode.captures(n_line){
                 Some(r) => {
+                    //println!("# Duration capture: {:#?}", r);
                     hrs = r.get(2).unwrap().as_str().parse().unwrap();
                     min = r.get(3).unwrap().as_str().parse().unwrap();
                     sec = r.get(4).unwrap().as_str().parse().unwrap();
@@ -211,9 +220,6 @@ pub async fn http_get_vid_frame(payload: Query<VidFrameQuery>) -> Result<(Status
             Ok(out) => out,
             Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
         };
-
-    //if cfg!(target_os = "windows") {
-        //#[cfg(windows)]
 
     println!("# CMD called. Waiting...");
 
