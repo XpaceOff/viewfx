@@ -121,7 +121,7 @@ async fn main() {
 // Read image and returns it through the http bridge
 async fn http_get_image_raw_data(payload: Query<ImageQuery>) -> Result<(StatusCode, Json<ImageResult>), (StatusCode, String)> {
 
-    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    //const CREATE_NO_WINDOW: u32 = 0x08000000;
 
     use std::time::Instant;
     let start_time = Instant::now();
