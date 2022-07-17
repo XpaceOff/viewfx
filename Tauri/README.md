@@ -77,5 +77,10 @@ $ brew install fdk-aac
 
 $ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --disable-libx264 --disable-libx265 --enable-libopus --disable-libxvid --disable-chromaprint --enable-libopenjpeg --enable-libaom --extra-ldflags=-L/usr/local/lib --samples=fate-suite/
 
+$ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --disable-libx264 --disable-libx265 --enable-libopus --disable-libxvid --disable-chromaprint --enable-libopenjpeg --enable-libaom --pkg-config-flags="--static" \
+    --extra-cflags="-I$TARGET_DIR/include" \
+    --extra-ldflags="-L$TARGET_DIR/lib" \
+    --extra-ldexeflags="-Bstatic" --samples=fate-suite/
+
 $ make
 ```
