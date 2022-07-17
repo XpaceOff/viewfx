@@ -27,16 +27,19 @@
                 <BarHandle parentW={barWidth} parentH={barHeight}></BarHandle>
 
                 <!-- Frame Numbers -->
-                <div class="flex w-full h-4/6">
+                <div class="relative flex w-full h-4/6">
                     {#each $barFrameCacheStatusA as frameNumber, i}
-                        <div class="flex w-full items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}">
-                            <div class=" -ml-1 select-none scale-75">
+                        <div
+                            class="flex items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}"
+                            style="width: {(barWidth) / ($videoTotalFrameLength+1)}px"
+                        >
+                            <div class=" -ml-1 select-none cursor-default scale-75">
                                 {
-                                $videoTotalFrameLength > 50 ? 
-                                    i%5 == 0 ? 
-                                        i+$videoStartFrame 
+                                    $videoTotalFrameLength > 50 ? 
+                                        i%( Math.round(($videoTotalFrameLength+1)/10) ) == 0 ?
+                                            i+$videoStartFrame 
                                         : i == $videoCurrentFrame ?
-                                        i+$videoStartFrame  : '' 
+                                            i+$videoStartFrame  : '' 
                                     : i+$videoStartFrame
                                 }
                             </div>
