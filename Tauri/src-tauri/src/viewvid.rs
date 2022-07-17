@@ -19,6 +19,19 @@ pub struct VideoMetadata {
     frame_length: usize,
 }
 
+#[cfg(windows)]
+fn no_console(cmd: &mut Command) -> &mut Command {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd
+}
+
+#[cfg(not(windows))]
+fn no_console(cmd: &mut Command) -> &mut Command {
+    cmd
+}
+
 //use std::os::windows::process::CommandExt;
 use regex::Regex;
 use std::path::Path;
@@ -30,8 +43,6 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
         timecode: "".to_string(),
         frame_length: 0,
     };
-
-    const CREATE_NO_WINDOW: u32 = 0x08000000;
 
     println!("Video Path: {:?}", &payload.video_full_path);
 
@@ -45,7 +56,7 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
     //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
     //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
     //let ffmpeg_command = "bin/ffmpeg";
-    let cmd_output = match tauri::api::process::Command::new_sidecar("./ffmpeg").unwrap()
+    let cmd_output = match tauri::api::process::Command::new_sidecar("ffmpeg").unwrap()
         .args([
             "-i",
             &payload.video_full_path,
@@ -170,35 +181,39 @@ pub async fn http_get_vid_frame(payload: Query<VidFrameQuery>) -> Result<(Status
 
     // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
     // Execute ffmpeg
-    let cmd = match Command::new(sidecar_ffmpeg)
-        //.arg("-hwaccel")
-        //.arg("cuda")
-        //.arg("-hwaccel_output_format")
-        //.arg("cuda")
-        //.arg("-init_hw_device")
-        //.arg("vulkan")
-        .arg("-i")
-        .arg(&img_full_path)
-        .arg("-vf")
-        .arg( format!("select=eq(n\\,{})", frame_number) )
-        //.arg("-filter_complex")
-        //.arg( format!("[0:v]select=eq(n\\,{}), scale={}:{}, extractplanes=r", frame_number, canvas_w, canvas_h) )
-        //.arg("extractplanes=r+g+b+a")
-        .arg("-f")
-        .arg("rawvideo")
-        //.arg("image2pipe")
-        .arg("-pix_fmt")
-        .arg("rgba")
-        .arg("-vframes")
-        .arg("1")
-        .arg("-")
+    let cmd = match no_console(Command::new(sidecar_ffmpeg)
+        .args([
+            //"-hwaccel",
+            //"cuda",
+            //"-hwaccel_output_format",
+            //"cuda",
+            //"-init_hw_device",
+            //"vulkan",
+            "-i",
+            &img_full_path,
+            "-vf",
+            &format!("select=eq(n\\,{})", frame_number),
+            //"-filter_complex",
+            // format!("[0:v]select=eq(n\\,{}), scale={}:{}, extractplanes=r", frame_number, canvas_w, canvas_h),
+            //"extractplanes=r+g+b+a",
+            "-f",
+            "rawvideo",
+            //"image2pipe",
+            "-pix_fmt",
+            "rgba",
+            "-vframes",
+            "1",
+            "-"
+        ])
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        //.creation_flags(CREATE_NO_WINDOW) // Un-comment this for a Windows build.
+        .stderr(Stdio::piped()))
         .spawn(){
             Ok(out) => out,
             Err(err) => return Err( (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", err)) )
         };
+
+    //if cfg!(target_os = "windows") {
+        //#[cfg(windows)]
 
     println!("# CMD called. Waiting...");
 
