@@ -77,10 +77,8 @@ $ brew install fdk-aac
 
 $ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --disable-libx264 --disable-libx265 --enable-libopus --disable-libxvid --disable-chromaprint --enable-libopenjpeg --enable-libaom --extra-ldflags=-L/usr/local/lib --samples=fate-suite/
 
-$ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libtheora --enable-libvorbis --enable-libvpx --disable-libx264 --disable-libx265 --enable-libopus --disable-libxvid --disable-chromaprint --enable-libopenjpeg --enable-libaom --pkg-config-flags="--static" \
-    --extra-cflags="-I$TARGET_DIR/include" \
-    --extra-ldflags="-L$TARGET_DIR/lib" \
-    --extra-ldexeflags="-Bstatic" --samples=fate-suite/
+# MacOS - v02
+./configure --cc=/usr/bin/clang --prefix=/opt/ffmpeg --extra-version=viewfx --enable-static --disable-shared --arch=x86_64 --disable-debug --disable-doc --disable-x86asm --disable-gpl --enable-version3 --disable-libx264 --pkg-config-flags=--static --disable-ffplay --disable-libxcb --disable-sdl2 --disable-xlib
 
 $ make
 ```

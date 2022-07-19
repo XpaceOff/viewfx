@@ -72,7 +72,7 @@
                     </div>
 
                     <!-- Cache progress bar B -->
-                    <div class="flex flex-row w-full h-[1px] min-h-0 px-2 opacity-90">
+                    <div class="flex flex-row w-full h-[1px] min-h-0 opacity-90">
                         {#each $barFrameCacheStatusB as cFrameCacheStatus, i}
                             {#if i==0}
                                 <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
