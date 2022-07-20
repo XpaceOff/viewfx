@@ -82,3 +82,58 @@ $ ./configure  --prefix=/usr/local --disable-gpl --disable-nonfree --enable-liba
 
 $ make
 ```
+### On Win10 
+
+For now lets just use https://github.com/BtbN/FFmpeg-Builds/releases
+until I figure out how to build it on windows
+Use the one called `ffmpeg-master-[VER]-win64-lgpl`
+
+```bash
+$ pacman -S make
+$ pacman -S diffutils
+$ pacman -S yasm
+
+
+$ git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+C:\msys64\usr\bin\bash -lc "pacman -S nasm"
+
+./configure --prefix=/usr/local --extra-version=viewfx --arch=x86_64 --target-os=mingw32 --cross-prefix=x86_64-w64-mingw32- --enable-static --disable-shared --disable-debug --disable-doc --disable-x86asm --disable-gpl --enable-version3 --disable-libx264 --pkg-config-flags=--static --disable-ffplay --disable-libxcb --disable-sdl2 --disable-xlib
+```
+pacman -S pacman -S mingw-w64-x86_64-toolchain
+pacman -S autoconf automake binutils cmake doxygen git libtool make mercurial nasm pkg-config subversion texinfo yasm
+
+
+CFLAGS=-I/mingw64/include &&
+LDFLAGS=-L/mingw64/lib &&
+export PKG_CONFIG_PATH= &&
+export PKG_CONFIG_LIBDIR=/mingw64/lib/pkgconfig &&
+./configure \
+--arch=x86_64 \
+--target-os=mingw64 \
+--cross-prefix=x86_64-w64-mingw64- \
+--prefix=/usr/local \
+--pkg-config=pkg-config \
+--pkg-config-flags=--static \
+--extra-cflags=-static \
+--extra-ldflags=-static \
+--enable-static --disable-shared --disable-debug --disable-doc --disable-x86asm --disable-gpl --enable-version3 --disable-libx264 --disable-ffplay --disable-libxcb --disable-sdl2 --disable-xlib
+
+--extra-libs="-lm -lz -fopenmp" \
+--enable-static \
+--disable-shared \
+--enable-nonfree \
+--enable-gpl \
+--enable-avisynth \
+--enable-libaom \
+--enable-libfdk-aac \
+--enable-libfribidi \
+--enable-libmp3lame \
+--enable-libopus \
+--enable-libsoxr \
+--enable-libvorbis \
+--enable-libvpx \
+--enable-libx264 \
+--enable-libx265 &&
+make -j$(nproc) &&
+make install
