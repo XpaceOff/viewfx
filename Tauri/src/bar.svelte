@@ -2,7 +2,7 @@
     import VideoControlArea from './VideoControlArea.svelte';
     import CacheBarUnit from './Playback/Bar/CacheBarUnit.svelte';
     import BarHandle from './Playback/barHandle.svelte';
-    import { barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, videoStartFrame } from './stores'
+    import { videoTotalFrameLength, videoCurrentFrame, videoStartFrame, isVideoPaused } from './stores'
     import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
 
     let progressA = raw_images_a.progress;
@@ -33,10 +33,15 @@
                 <div class="relative flex w-full h-4/6">
                     {#each $progressA as frameNumber, i}
                         <div
-                            class="flex items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}"
+                            class="flex items-center justify-center text-sm cursor-col-resize {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}"
                             style="width: {(barWidth) / ($videoTotalFrameLength+1)}px"
+                            on:click={() => {
+                                if ($isVideoPaused){
+                                    $videoCurrentFrame = i;
+                                }
+                            }}
                         >
-                            <div class=" -ml-1 select-none cursor-default scale-75">
+                            <div class=" -ml-1 select-none cursor-col-resize scale-75">
                                 {
                                     $videoTotalFrameLength > 50 ? 
                                         i%( Math.round(($videoTotalFrameLength+1)/10) ) == 0 ?
@@ -54,10 +59,17 @@
                 <div class="flex flex-col w-full h-2/6">
 
                     <!-- Frame lines -->
-                    <div class="flex w-full h-full">
+                    <div class="flex w-full h-full cursor-col-resize">
                         {#each $progressA as frameNumber, i}
                             <div class="flex w-full"></div>
-                            <div class="flex w-full border-l {i == $videoCurrentFrame ? 'border-purple-400' : 'border-zinc-400'}"></div>
+                            <div 
+                                class="flex w-full border-l {i == $videoCurrentFrame ? 'border-purple-400' : 'border-zinc-400'}"
+                                on:click={() => {
+                                    if ($isVideoPaused){
+                                        $videoCurrentFrame = i;
+                                    }
+                                }}
+                            ></div>
                         {/each}
                     </div>
 
