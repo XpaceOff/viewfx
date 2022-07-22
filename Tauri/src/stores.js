@@ -32,12 +32,6 @@ export const mediaSlot = writable([null, null]);
 // Canvas size [x, y]
 export const canvasSize = writable([0, 0]);
 
-// 0: non-cached
-// 1: caching
-// 2: cached
-export const barFrameCacheStatusA = writable([]);
-export const barFrameCacheStatusB = writable([]);
-
 export const barCurrentFrame = writable([]);
 
 // Total of frames in video

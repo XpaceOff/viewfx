@@ -1,21 +1,17 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
+    import { barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
     import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort } from "./stores";
-    import WorkerBuilder from "./workers/worker-builder";
-    import workerFile from "./workers/cacheWorker";
+    import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
+    import WorkerBuilder from "./Workers/worker-builder";
+    import workerFile from "./Workers/cacheWorker";
     import axios from "axios";
 
     export let parentW;
 
-    // Images variables
-    let rawImageFramesA = [];
-    let rawImageFramesOrderA = [];
-    let seqImgPathsA = [];
-
-    let rawImageFramesB = [];
-    let rawImageFramesOrderB = [];
-    let seqImgPathsB = [];
+    // Image variables
+    let progressA = raw_images_a.progress;
+    let progressB = raw_images_b.progress;
 
     let rawImageFramesDiff = [];
 
@@ -74,16 +70,11 @@
             if ($mediaToBeImported == 'B') currentMedia = value[1];
 
             // Clear old Data
-            if ($mediaToBeImported == 'A'){
-                rawImageFramesOrderA = [];
-                $barFrameCacheStatusA = [];
-                seqImgPathsA = [];
-            }
+            if ($mediaToBeImported == 'A')
+                raw_images_a.clearAll();
             
             if ($mediaToBeImported == 'B'){
-                rawImageFramesOrderB = [];
-                $barFrameCacheStatusB = [];
-                seqImgPathsB = [];
+                raw_images_b.clearAll();
             }
             
             $videoCurrentFrame = 0;
@@ -126,13 +117,13 @@
 
                             if ($mediaToBeImported == 'A'){
                                 // Create the array of image paths
-                                seqImgPathsA.push(tmpImageName);
+                                raw_images_a.paths.push(tmpImageName);
 
                                 // Create the array that will contain the right order of frames already cached
-                                rawImageFramesOrderA.push(0);
+                                raw_images_a.order.push(0);
 
                                 // Update the bar cache status to 0 (non-cached)
-                                $barFrameCacheStatusA.push(0);
+                                raw_images_a.pushToProgress(0);
 
                                 // 
                                 rawImageFramesDiff.push(null);
@@ -140,13 +131,13 @@
 
                             if ($mediaToBeImported == 'B'){
                                 // Create the array of image paths
-                                seqImgPathsB.push(tmpImageName);
+                                raw_images_b.paths.push(tmpImageName);
 
                                 // Create the array that will contain the right order of frames already cached
-                                rawImageFramesOrderB.push(0);
+                                raw_images_b.order.push(0);
 
                                 // Update the bar cache status to 0 (non-cached)
-                                $barFrameCacheStatusB.push(0);
+                                raw_images_b.pushToProgress(0);
                             }
 
                         }
@@ -163,13 +154,13 @@
 
                     if ($mediaToBeImported == 'A'){
                         // Create the array of image paths
-                        seqImgPathsA.push(currentMedia.path);
+                        raw_images_a.paths.push(currentMedia.path);
 
                         // Create the array that will contain the right order of frames already cached
-                        rawImageFramesOrderA.push(0);
+                        raw_images_a.order.push(0);
 
                         // Update the bar cache status to 0 (non-cached)
-                        $barFrameCacheStatusA.push(0);
+                        raw_images_a.pushToProgress(0);
 
                         // 
                         rawImageFramesDiff.push(null);
@@ -177,13 +168,13 @@
 
                     if ($mediaToBeImported == 'B'){
                         // Create the array of image paths
-                        seqImgPathsB.push(currentMedia.path);
+                        raw_images_b.paths.push(currentMedia.path);
 
                         // Create the array that will contain the right order of frames already cached
-                        rawImageFramesOrderB.push(0);
+                        raw_images_b.order.push(0);
 
                         // Update the bar cache status to 0 (non-cached)
-                        $barFrameCacheStatusB.push(0);
+                        raw_images_b.pushToProgress(0);
                     }
 
                 }
@@ -215,13 +206,13 @@
 
                         if ($mediaToBeImported == 'A'){
                             // Create the array of image paths
-                            seqImgPathsA.push(currentMedia.path);
+                            raw_images_a.paths.push(currentMedia.path);
 
                             // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderA.push(0);
+                            raw_images_a.order.push(0);
 
                             // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusA.push(0);
+                            raw_images_a.pushToProgress(0);
 
                             // 
                             rawImageFramesDiff.push(null);
@@ -229,13 +220,13 @@
 
                         if ($mediaToBeImported == 'B'){
                             // Create the array of image paths
-                            seqImgPathsB.push(currentMedia.path);
+                            raw_images_b.paths.push(currentMedia.path);
 
                             // Create the array that will contain the right order of frames already cached
-                            rawImageFramesOrderB.push(0);
+                            raw_images_b.order.push(0);
 
                             // Update the bar cache status to 0 (non-cached)
-                            $barFrameCacheStatusB.push(0);
+                            raw_images_b.pushToProgress(0);
                         }
                     }
 
@@ -269,7 +260,7 @@
             if ( (interSize[0] > cW) || (interSize[1] > cH) && cW != 0 && cH != 0 ){
 
                 // Re-cache media A if it was loaded previously 
-                if (rawImageFramesA.length > 0 ){
+                if (raw_images_a.length > 0 ){
                     //$mediaToBeImported = 'A';
 
                     /*for (nFrame in $barFrameCacheStatusA){
@@ -281,7 +272,7 @@
                 }
                 
                 // Re-cache media B if it was loaded previously 
-                if (rawImageFramesB.length > 0){
+                if (raw_images_b.imgs.length > 0){
                     //$mediaToBeImported = 'B';
                     console.log("Cache B");
                     //startCaching();
@@ -305,16 +296,16 @@
 
             if (cMediaSlot == 'A'){
                 // Update the bar cache status to 1 (caching)
-                $barFrameCacheStatusA[nFrame] = 1;
+                raw_images_a.setStatusAtFrame(1, nFrame);
 
-                seqImgPaths = seqImgPathsA;
+                seqImgPaths = raw_images_a.paths;
             }
 
             if (cMediaSlot == 'B'){
                 // Update the bar cache status to 1 (caching)
-                $barFrameCacheStatusB[nFrame] = 1;
+                raw_images_b.setStatusAtFrame(1, nFrame);
 
-                seqImgPaths = seqImgPathsB;
+                seqImgPaths = raw_images_b.paths;
             }
 
             let queryParams = {
@@ -328,6 +319,7 @@
 
             //console.log(" # queryParams: ", queryParams);
 
+            // Use WebWorkers to avoid lagging the window while gettin the image info 
             if (window.Worker){
                 //const cacheWorker = new Worker("workers/cacheWorker.js", { type: "module"});
                 var cacheWorker = new WorkerBuilder(workerFile);
@@ -349,24 +341,24 @@
 
                     if (cMediaSlot == 'A'){
                         // Save the images paths into the array
-                        rawImageFramesA.push([e.data.image_raw_data, r_imgDimensions]);
+                        raw_images_a.imgs.push([e.data.image_raw_data, r_imgDimensions]);
         
                         // Save the right order of frames
-                        rawImageFramesOrderA[r_currentFrame - $videoStartFrame] = rawImageFramesA.length - 1;
+                        raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
         
                         // Update the bar cache status to 1 (cached)
-                        $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
+                        raw_images_a.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
                     }
 
                     if (cMediaSlot == 'B'){
                         // Save the images paths into the array
-                        rawImageFramesB.push([e.data.image_raw_data, r_imgDimensions]);
+                        raw_images_b.imgs.push([e.data.image_raw_data, r_imgDimensions]);
         
                         // Save the right order of frames
-                        rawImageFramesOrderB[r_currentFrame - $videoStartFrame] = rawImageFramesB.length - 1;
+                        raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
         
                         // Update the bar cache status to 1 (cached)
-                        $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 2;
+                        raw_images_b.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
                     }
                 }
             }
@@ -396,10 +388,10 @@
 
                 if (cMediaSlot == 'A'){
                     // Save the images paths into the array
-                    rawImageFramesA.push([raw, r_imgDimensions]);
+                    raw_images_a.imgs.push([raw, r_imgDimensions]);
     
                     // Save the right order of frames
-                    rawImageFramesOrderA[r_currentFrame - $videoStartFrame] = rawImageFramesA.length - 1;
+                    raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
     
                     // Update the bar cache status to 1 (cached)
                     $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
@@ -407,10 +399,10 @@
 
                 if (cMediaSlot == 'B'){
                     // Save the images paths into the array
-                    rawImageFramesB.push([raw, r_imgDimensions]);
+                    raw_images_b.imgs.push([raw, r_imgDimensions]);
     
                     // Save the right order of frames
-                    rawImageFramesOrderB[r_currentFrame - $videoStartFrame] = rawImageFramesB.length - 1;
+                    raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
     
                     // Update the bar cache status to 1 (cached)
                     $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 2;
@@ -433,9 +425,9 @@
         $mediaToBeImported = "";
     }
 
-    function updateCanvas(time) {
+    async function updateCanvas(time) {
 
-        if (rawImageFramesOrderA.length > 0){
+        if (raw_images_a.order.length > 0){
             // 24 frames per second (1000/24fps = 41.66):
             // Update the canvas every X frames per second 
             if (time > lastFrameTime + 41.66) {
@@ -447,13 +439,13 @@
 
                 if ($imgDrawOnCanvasIsA){
                     // Update canvas if the image is cached
-                    if ($barFrameCacheStatusA[$videoCurrentFrame] == 2){
+                    if ($progressA[$videoCurrentFrame] == 2){
 
                         // TODO: Get the image size and update the variables
-                        imgW = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][0];
-                        imgH = rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][1][1];
+                        imgW = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][1][0];
+                        imgH = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][1][1];
         
-                        let currentImageData = new ImageData(rawImageFramesA[rawImageFramesOrderA[$videoCurrentFrame]][0], imgW, imgH);
+                        let currentImageData = new ImageData(raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][0], imgW, imgH);
             
                         if ($imgDrawOnCanvasIsAB){
 
@@ -467,7 +459,7 @@
                             // Draw Image A
                             context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
 
-                            currentImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
+                            currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
                             
                             let bW = 0;
                             if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
@@ -486,25 +478,26 @@
                         if ($imgDrawOnCanvasIsDiff){
 
                             // If the diff image is not cached yet then start the computation
-                            if (rawImageFramesDiff[$videoCurrentFrame] == null){
+                            //if (rawImageFramesDiff[$videoCurrentFrame] == null){
                                 // 
-                                var imgCopyA = new Image();
-                                imgCopyA.src = canvas.toDataURL();
+                                //var imgCopyA = new Image();
+                                //imgCopyA.src = canvas.toDataURL();
     
-                                let diffImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
-                                context.putImageData(diffImageData, 0, 0);
+                                let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                                diffImageData = await createImageBitmap(diffImageData);
+                                //context.putImageData(diffImageData, 0, 0);
     
                                 context.globalAlpha = 1;   // amount of FX
                                 context.globalCompositeOperation = "difference";
-                                context.drawImage(imgCopyA, 0, 0);
+                                context.drawImage(diffImageData, 0, 0);
                                 //context.drawImage(frame, left, top, vidW * scale, vidH * scale);
 
                                 rawImageFramesDiff[$videoCurrentFrame] = new Image();
                                 rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
 
-                            } else{ // If not then just draw it
+                            /*} else{ // If not then just draw it
                                 context.drawImage(rawImageFramesDiff[$videoCurrentFrame], 0, 0);
-                            }
+                            }*/
 
                         }
 
@@ -514,12 +507,12 @@
 
                 if ($imgDrawOnCanvasIsB){
                     // Update canvas if the image is cached
-                    if ($barFrameCacheStatusB[$videoCurrentFrame] == 2){
+                    if ($progressB[$videoCurrentFrame] == 2){
                         // TODO: Get the image size and update the variables
-                        imgW = rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][1][0];
-                        imgH = rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][1][1];
+                        imgW = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][1][0];
+                        imgH = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][1][1];
         
-                        let currentImageData = new ImageData(rawImageFramesB[rawImageFramesOrderB[$videoCurrentFrame]][0], imgW, imgH);
+                        let currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
             
                         context.putImageData(currentImageData, 0, 0);
                         lastFrameTime = time;
