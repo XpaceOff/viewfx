@@ -2,8 +2,11 @@
     import VideoControlArea from './VideoControlArea.svelte';
     import CacheBarUnit from './Playback/Bar/CacheBarUnit.svelte';
     import BarHandle from './Playback/barHandle.svelte';
-    import { barFrameCacheStatusA, barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, videoStartFrame } from './stores'
-    
+    import { barFrameCacheStatusB, videoTotalFrameLength, videoCurrentFrame, videoStartFrame } from './stores'
+    import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
+
+    let progressA = raw_images_a.progress;
+    let progressB = raw_images_b.progress;
 
     let barWidth, barHeight;
 </script>
@@ -12,13 +15,13 @@
     <div class="flex w-full h-2/6 py-0.5">
 
         <!-- Start Frame Text-->
-        <div class="flex w-12 h-full select-none justify-center items-center py-0.5 px-1">
+        <div class="flex shrink-0 w-12 h-full select-none justify-center items-center py-0.5 px-1">
             <div class="flex w-full h-full justify-center items-center bg-zinc-900/50 rounded-sm">
                 {$videoStartFrame}
             </div>
         </div>
 
-        <div class="flex w-full h-full bg-zinc-900 rounded-sm border border-black/10 drop-shadow-lg">
+        <div class="flex w-full h-full bg-zinc-900 rounded-sm border border-black/10 drop-shadow-lg min-w-0">
             <div class="flex-none flex-col w-full h-full overflow-hidden"
                 bind:clientWidth={barWidth}
                 bind:clientHeight={barHeight}
@@ -28,7 +31,7 @@
 
                 <!-- Frame Numbers -->
                 <div class="relative flex w-full h-4/6">
-                    {#each $barFrameCacheStatusA as frameNumber, i}
+                    {#each $progressA as frameNumber, i}
                         <div
                             class="flex items-center justify-center text-sm {i == $videoCurrentFrame ? 'text-purple-400' : 'text-zinc-400'}"
                             style="width: {(barWidth) / ($videoTotalFrameLength+1)}px"
@@ -52,7 +55,7 @@
 
                     <!-- Frame lines -->
                     <div class="flex w-full h-full">
-                        {#each $barFrameCacheStatusA as frameNumber, i}
+                        {#each $progressA as frameNumber, i}
                             <div class="flex w-full"></div>
                             <div class="flex w-full border-l {i == $videoCurrentFrame ? 'border-purple-400' : 'border-zinc-400'}"></div>
                         {/each}
@@ -60,7 +63,7 @@
 
                     <!-- Cache progress bar -->
                     <div class="flex flex-row w-full h-[1px] min-h-0 opacity-90">
-                        {#each $barFrameCacheStatusA as cFrameCacheStatus, i}
+                        {#each $progressA as cFrameCacheStatus, i}
                             {#if i==0}
                                 <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
                             {:else if i==$videoTotalFrameLength-1}
@@ -73,7 +76,7 @@
 
                     <!-- Cache progress bar B -->
                     <div class="flex flex-row w-full h-[1px] min-h-0 opacity-90">
-                        {#each $barFrameCacheStatusB as cFrameCacheStatus, i}
+                        {#each $progressB as cFrameCacheStatus, i}
                             {#if i==0}
                                 <CacheBarUnit cacheStatus={cFrameCacheStatus}></CacheBarUnit>
                             {:else if i==$videoTotalFrameLength-1}
@@ -88,7 +91,7 @@
         </div>
 
         <!-- Last Frame Text-->
-        <div class="flex w-12 h-full select-none justify-center items-center py-0.5 px-1">
+        <div class="flex shrink-0 w-12 h-full select-none justify-center items-center py-0.5 px-1">
             <div class="flex w-full h-full justify-center items-center bg-zinc-900/50 rounded-sm">
                 {$videoStartFrame+$videoTotalFrameLength}
             </div>
