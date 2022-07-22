@@ -16,7 +16,6 @@ class RawImageFrames {
     }
 
     pushToProgress(status) {
-        console.log("Status:", status);
         this.progress.update( p => {
             return([...p, status]);
         } );
