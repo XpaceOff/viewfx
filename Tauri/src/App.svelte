@@ -50,6 +50,7 @@
 				parentW={$internalViewwerSize[0]}
 			/>
 
+			<!-- Only show ViewFX logo if no media has been loaded -->
 			{#if !($mediaSlot[0] || $mediaSlot[1])}
 				<div class=" absolute flex w-full h-full items-center justify-center overflow-hidden py-6 select-none opacity-5">
 					<img class=" w-1/3  object-contain z-0" src="ViewFX_v04.png" alt="ViewFX Logo">

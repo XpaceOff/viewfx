@@ -266,11 +266,15 @@
             } catch (err) {
 
                 // Clear cache
-                if ($mediaToBeImported == 'A')
+                if ($mediaToBeImported == 'A'){
                     raw_images_a.clearAll();
+                    $mediaSlot[0] = null;
+                }
                 
                 if ($mediaToBeImported == 'B'){
                     raw_images_b.clearAll();
+                    $mediaSlot[1] = null;
+                    $imgDrawOnCanvasIsA = true;
                 }
                 
                 rawImageFramesDiff = [];
