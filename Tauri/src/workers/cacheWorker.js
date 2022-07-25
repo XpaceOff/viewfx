@@ -16,10 +16,13 @@ export default () => {
         };
 
         fetch(bridge_url, options)
-        /*.then((response) => {
-            console.log(response);
-        });*/
-        .then((response) => response.json())
+        .then((response) => {
+            if(!response.ok){
+                throw new Error("Couldn't get the frame data");
+            }
+
+            return response.json();
+        })
         .then((data_from_rust) => {
             //console.log(data_from_rust);
 
@@ -29,9 +32,18 @@ export default () => {
             let r_currentFrame = data_from_rust.frame_number;
 
             postMessage({
+                error: false,
                 image_raw_data: raw,
                 img_dimensions: r_imgDimensions,
                 frame_number: r_currentFrame
+            });
+        })
+        .catch((error) => {
+
+            postMessage({
+                error: true,
+                error_type: error.message,
+                frame_number: e.data[0].frame_number
             });
         });
 

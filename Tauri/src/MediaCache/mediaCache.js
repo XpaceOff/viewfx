@@ -33,5 +33,6 @@ class RawImageFrames {
 // 0: non-cached
 // 1: caching
 // 2: cached
+// 3: error while caching
 export const raw_images_a = new RawImageFrames();
 export const raw_images_b = new RawImageFrames();
