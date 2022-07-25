@@ -23,7 +23,11 @@
 <div class="flex flex-row w-full h-full px-2 py-1 items-center justify-between">
     <LoadFileModal></LoadFileModal>
     <div class="flex flex-row h-full items-center">
-        <UpStdButtonTwoIco on:click={ openModalLoadFileA } cssIcon01={"fa-photo-film"} cssIcon02={"fa-a"}></UpStdButtonTwoIco>
+        <UpStdButtonTwoIco
+            on:click={ openModalLoadFileA }
+            cssIcon01={"fa-photo-film"}
+            cssIcon02={"fa-a"}
+        />
         <UpStdButtonTwoIco
             on:click={ openModalLoadFileB }
             cssIcon01={"fa-photo-film"}
@@ -77,6 +81,12 @@
             cssIcon={"fa-b"}
             on:click={() => {
                 if ($imgDrawOnCanvasIsAB == false && $imgDrawOnCanvasIsDiff == false) {
+                    $imgDrawOnCanvasIsA = false;
+                    $imgDrawOnCanvasIsB = true;
+                }
+                if ($imgDrawOnCanvasIsAB == true || $imgDrawOnCanvasIsDiff == true) {
+                    $imgDrawOnCanvasIsAB = false;
+                    $imgDrawOnCanvasIsDiff = false;
                     $imgDrawOnCanvasIsA = false;
                     $imgDrawOnCanvasIsB = true;
                 }
