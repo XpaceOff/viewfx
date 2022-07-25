@@ -358,102 +358,74 @@
             if (window.Worker){
                 var cacheWorker = new WorkerBuilder(workerFile);
 
+                // Send request to a web worker.
                 cacheWorker.postMessage([queryParams, $addrAndPort]);
                 //console.log('Message posted to worker');
 
+                // Data received from the web worker.
                 cacheWorker.onmessage = function(e) {
                     //console.log(e.data);
                     //console.log('Message received from worker');
 
-                    // Push an array of the image's raw data into rawImageFrames
-                    //let raw = e.data.image_raw_data;
-                    let r_imgDimensions = e.data.img_dimensions;
-                    let r_currentFrame = e.data.frame_number;
-
-                    cW = r_imgDimensions[0];
-                    cH = r_imgDimensions[1];
-
-                    if (cMediaSlot == 'A'){
-                        // Save the images paths into the array
-                        raw_images_a.imgs.push([e.data.image_raw_data, r_imgDimensions]);
-        
-                        // Save the right order of frames
-                        raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
-        
-                        // Update the bar cache status to 1 (cached)
-                        raw_images_a.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                    if ( !e.data.error ){
+                        // Push an array of the image's raw data into rawImageFrames
+                        //let raw = e.data.image_raw_data;
+                        let r_imgDimensions = e.data.img_dimensions;
+                        let r_currentFrame = e.data.frame_number;
+    
+                        cW = r_imgDimensions[0];
+                        cH = r_imgDimensions[1];
+    
+                        if (cMediaSlot == 'A'){
+                            // Save the images paths into the array
+                            raw_images_a.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+            
+                            // Save the right order of frames
+                            raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
+            
+                            // Update the bar cache status to 2 (cached)
+                            raw_images_a.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                        }
+    
+                        if (cMediaSlot == 'B'){
+                            // Save the images paths into the array
+                            raw_images_b.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+            
+                            // Save the right order of frames
+                            raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
+            
+                            // Update the bar cache status to 2 (cached)
+                            raw_images_b.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                        }
                     }
+                    else{ // There was a problem while getting the image data.
+                        let r_currentFrame = e.data.frame_number;
 
-                    if (cMediaSlot == 'B'){
-                        // Save the images paths into the array
-                        raw_images_b.imgs.push([e.data.image_raw_data, r_imgDimensions]);
-        
-                        // Save the right order of frames
-                        raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
-        
-                        // Update the bar cache status to 1 (cached)
-                        raw_images_b.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                        if (cMediaSlot == 'A'){
+                            // Save the images paths into the array
+                            raw_images_a.imgs.push([]);
+            
+                            // Save the right order of frames
+                            raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
+            
+                            // Update the bar cache status to 3 (error)
+                            raw_images_a.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
+                        }
+    
+                        if (cMediaSlot == 'B'){
+                            // Save the images paths into the array
+                            raw_images_b.imgs.push([]);
+            
+                            // Save the right order of frames
+                            raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
+            
+                            // Update the bar cache status to 3 (error)
+                            raw_images_b.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
+                        }
+
                     }
                 }
             }
-
-            /*axios.get('http://'+$addrAndPort+'/image_raw_data', {
-                //headers: {
-                //    "Origin": [""],
-			    //    "Access-Control-Allow-Origin": "*",
-                // },
-                params: {
-                    src_img_type: imgTypeToLoadFrom,
-                    load_full_img: $isLoadFullImg,
-                    img_full_path: seqImgPaths[nFrame],
-                    frame_number: frameNumber,
-                    canvas_w: $canvasSize[0],
-                    canvas_h: $canvasSize[1]
-                }
-            })
-            .then(function (data_from_rust) {
-                // Push an array of the image's raw data into rawImageFrames
-                let raw = Uint8ClampedArray.from(data_from_rust.data.image_raw_data);
-                let r_imgDimensions = data_from_rust.data.img_dimensions;
-                let r_currentFrame = data_from_rust.data.frame_number;
-
-                cW = r_imgDimensions[0];
-                cH = r_imgDimensions[1];
-
-                if (cMediaSlot == 'A'){
-                    // Save the images paths into the array
-                    raw_images_a.imgs.push([raw, r_imgDimensions]);
-    
-                    // Save the right order of frames
-                    raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
-    
-                    // Update the bar cache status to 1 (cached)
-                    $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 2;
-                }
-
-                if (cMediaSlot == 'B'){
-                    // Save the images paths into the array
-                    raw_images_b.imgs.push([raw, r_imgDimensions]);
-    
-                    // Save the right order of frames
-                    raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
-    
-                    // Update the bar cache status to 1 (cached)
-                    $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 2;
-                }
-
-            })
-            .catch(function (error) {
-                // TODO: Change bar status to `red` / error
-                // TBD
-                console.log(error);
-
-                // Update the bar cache status to 0 (error)
-                if (cMediaSlot == 'A') $barFrameCacheStatusA[r_currentFrame - $videoStartFrame] = 3;
-                if (cMediaSlot == 'B') $barFrameCacheStatusB[r_currentFrame - $videoStartFrame] = 3;
-            });*/
-
-
         }
 
         $mediaToBeImported = "";
@@ -482,27 +454,30 @@
                         let currentImageData = new ImageData(raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][0], imgW, imgH);
             
                         if ($imgDrawOnCanvasIsAB){
+                            // Update canvas if the image B is cached
+                            if ($progressB[$videoCurrentFrame] == 2){
+                                let scaleRatio = cW / $canvasSize[0];
+    
+                                let aW = $abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 );
+                                aW = parseInt(aW * scaleRatio);
+    
+                                if (aW < 0) aW = 0;
+    
+                                // Draw Image A
+                                context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
+    
+                                currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                                
+                                let bW = 0;
+                                if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
+                                else bW = parseInt($canvasSize[0] - aW) * scaleRatio;
+    
+                                //console.log($abHandlePos, $canvasSize[0], aW, bW);
+                                
+                                // Draw Image B
+                                context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
+                            }
 
-                            let scaleRatio = cW / $canvasSize[0];
-
-                            let aW = $abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 );
-                            aW = parseInt(aW * scaleRatio);
-
-                            if (aW < 0) aW = 0;
-
-                            // Draw Image A
-                            context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
-
-                            currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
-                            
-                            let bW = 0;
-                            if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
-                            else bW = parseInt($canvasSize[0] - aW) * scaleRatio;
-
-                            //console.log($abHandlePos, $canvasSize[0], aW, bW);
-                            
-                            // Draw Image B
-                            context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
                         } else{
                             context.putImageData(currentImageData, 0, 0);
                             //context.putImageData(currentImageData, 0, 0, 100, 0, imgW, imgH);
@@ -510,29 +485,31 @@
 
                         // Diff Code
                         if ($imgDrawOnCanvasIsDiff){
-
-                            // If the diff image is not cached yet then start the computation
-                            //if (rawImageFramesDiff[$videoCurrentFrame] == null){
-                                // 
-                                //var imgCopyA = new Image();
-                                //imgCopyA.src = canvas.toDataURL();
+                            
+                            // Update canvas if the image B is cached
+                            if ($progressB[$videoCurrentFrame] == 2){
+                                // If the diff image is not cached yet then start the computation
+                                //if (rawImageFramesDiff[$videoCurrentFrame] == null){
+                                    // 
+                                    //var imgCopyA = new Image();
+                                    //imgCopyA.src = canvas.toDataURL();
+        
+                                    let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                                    diffImageData = await createImageBitmap(diffImageData);
+                                    //context.putImageData(diffImageData, 0, 0);
+        
+                                    context.globalAlpha = 1;   // amount of FX
+                                    context.globalCompositeOperation = "difference";
+                                    context.drawImage(diffImageData, 0, 0);
+                                    //context.drawImage(frame, left, top, vidW * scale, vidH * scale);
     
-                                let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
-                                diffImageData = await createImageBitmap(diffImageData);
-                                //context.putImageData(diffImageData, 0, 0);
+                                    rawImageFramesDiff[$videoCurrentFrame] = new Image();
+                                    rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
     
-                                context.globalAlpha = 1;   // amount of FX
-                                context.globalCompositeOperation = "difference";
-                                context.drawImage(diffImageData, 0, 0);
-                                //context.drawImage(frame, left, top, vidW * scale, vidH * scale);
-
-                                rawImageFramesDiff[$videoCurrentFrame] = new Image();
-                                rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
-
-                            /*} else{ // If not then just draw it
-                                context.drawImage(rawImageFramesDiff[$videoCurrentFrame], 0, 0);
-                            }*/
-
+                                /*} else{ // If not then just draw it
+                                    context.drawImage(rawImageFramesDiff[$videoCurrentFrame], 0, 0);
+                                }*/
+                            }
                         }
 
                         lastFrameTime = time;
