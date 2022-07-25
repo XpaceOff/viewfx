@@ -64,12 +64,16 @@
                 if ($mediaToBeImported == 'B') currentMedia = value[1];
 
                 // Clear old Data
-                if ($mediaToBeImported == 'A')
+                if ($mediaToBeImported == 'A'){
                     raw_images_a.clearAll();
-                
-                if ($mediaToBeImported == 'B'){
-                    raw_images_b.clearAll();
+                    $mediaSlot[1] = null;
+                    $imgDrawOnCanvasIsA = true;
+                    $imgDrawOnCanvasIsB = false;
                 }
+                
+                //if ($mediaToBeImported == 'B'){
+                    raw_images_b.clearAll();
+                //}
                 
                 $videoCurrentFrame = 0;
                 rawImageFramesDiff = [];
@@ -123,9 +127,6 @@
 
                                     // Update the bar cache status to 0 (non-cached)
                                     raw_images_a.pushToProgress(0);
-
-                                    // 
-                                    rawImageFramesDiff.push(null);
                                 }
 
                                 if ($mediaToBeImported == 'B'){
@@ -137,6 +138,9 @@
 
                                     // Update the bar cache status to 0 (non-cached)
                                     raw_images_b.pushToProgress(0);
+
+                                    // 
+                                    rawImageFramesDiff.push(null);
                                 }
 
                             }
@@ -158,9 +162,6 @@
 
                             // Update the bar cache status to 0 (non-cached)
                             raw_images_a.pushToProgress(0);
-
-                            // 
-                            rawImageFramesDiff.push(null);
                         }
 
                         if ($mediaToBeImported == 'B'){
@@ -177,6 +178,9 @@
 
                             // Update the bar cache status to 0 (non-cached)
                             raw_images_b.pushToProgress(0);
+
+                            // 
+                            rawImageFramesDiff.push(null);
                         }
 
                     }
@@ -222,9 +226,6 @@
 
                                 // Update the bar cache status to 0 (non-cached)
                                 raw_images_a.pushToProgress(0);
-
-                                // 
-                                rawImageFramesDiff.push(null);
                             }
 
                             if ($mediaToBeImported == 'B'){
@@ -236,6 +237,9 @@
 
                                 // Update the bar cache status to 0 (non-cached)
                                 raw_images_b.pushToProgress(0);
+
+                                // 
+                                rawImageFramesDiff.push(null);
                             }
                         }
 
@@ -269,13 +273,10 @@
                 if ($mediaToBeImported == 'A'){
                     raw_images_a.clearAll();
                     $mediaSlot[0] = null;
+                    $mediaSlot[1] = null;
                 }
                 
-                if ($mediaToBeImported == 'B'){
-                    raw_images_b.clearAll();
-                    $mediaSlot[1] = null;
-                    $imgDrawOnCanvasIsA = true;
-                }
+                raw_images_b.clearAll();
                 
                 rawImageFramesDiff = [];
 
@@ -493,7 +494,7 @@
                             // Update canvas if the image B is cached
                             if ($progressB[$videoCurrentFrame] == 2){
                                 // If the diff image is not cached yet then start the computation
-                                //if (rawImageFramesDiff[$videoCurrentFrame] == null){
+                                if (rawImageFramesDiff[$videoCurrentFrame] == null){
                                     // 
                                     //var imgCopyA = new Image();
                                     //imgCopyA.src = canvas.toDataURL();
@@ -507,12 +508,12 @@
                                     context.drawImage(diffImageData, 0, 0);
                                     //context.drawImage(frame, left, top, vidW * scale, vidH * scale);
     
-                                    rawImageFramesDiff[$videoCurrentFrame] = new Image();
-                                    rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
+                                    //rawImageFramesDiff[$videoCurrentFrame] = new Image();
+                                    //rawImageFramesDiff[$videoCurrentFrame].src = canvas.toDataURL();
     
-                                /*} else{ // If not then just draw it
+                                } else{ // If not then just draw it
                                     context.drawImage(rawImageFramesDiff[$videoCurrentFrame], 0, 0);
-                                }*/
+                                }
                             }
                         }
 
