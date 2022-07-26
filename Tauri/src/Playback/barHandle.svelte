@@ -29,11 +29,15 @@
                 
                 let tmpCal = handlePos / parentW;
                 $videoCurrentFrame =  Math.round($videoTotalFrameLength * tmpCal);
+
+                if ($videoCurrentFrame > $videoTotalFrameLength) $videoCurrentFrame = $videoTotalFrameLength;
+                if ($videoCurrentFrame < 0) $videoCurrentFrame = 0;
+
                 handlePos = (($videoCurrentFrame ) * frame_width) + frame_width/2;
 
                 // Sets handles limits.
-                if (handlePos < (frame_width/2)) handlePos = (frame_width/2) ;
-                if (handlePos > (parentW - (frame_width/2))) handlePos =  parentW - (frame_width/2);
+                //if (handlePos < (frame_width/2)) handlePos = (frame_width/2) ;
+                //if (handlePos > (parentW - (frame_width/2))) handlePos =  parentW - (frame_width/2);
 
                 // Update the handle's position.
                 node.style.left = `${handlePos}px`;
