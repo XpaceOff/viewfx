@@ -60,20 +60,29 @@
             try {
                 let currentMedia = null;    // media to be cached.
 
-                if ($mediaToBeImported == 'A') currentMedia = value[0];
-                if ($mediaToBeImported == 'B') currentMedia = value[1];
+                let refObject = null;
+                let tmpMediaToBeImported = $mediaToBeImported;
+
+                if ($mediaToBeImported == 'A') {
+                    currentMedia = value[0];
+                    refObject = raw_images_a;
+                }
+                if ($mediaToBeImported == 'B') {
+                    currentMedia = value[1];
+                    refObject = raw_images_b;
+                }
+
+                $mediaToBeImported = "";
 
                 // Clear old Data
-                if ($mediaToBeImported == 'A'){
+                if (tmpMediaToBeImported == 'A'){
                     raw_images_a.clearAll();
                     $mediaSlot[1] = null;
                     $imgDrawOnCanvasIsA = true;
                     $imgDrawOnCanvasIsB = false;
                 }
                 
-                //if ($mediaToBeImported == 'B'){
-                    raw_images_b.clearAll();
-                //}
+                raw_images_b.clearAll();
                 
                 $videoCurrentFrame = 0;
                 rawImageFramesDiff = [];
@@ -93,18 +102,19 @@
                         let splitedName = currentMedia.name.match(/^(.+?)([0-9]+)-([0-9]+)\.(.{3,4})$/);
 
                         if (splitedName.length == 5){ // Just making sure
-                            console.log("HERE-03");
 
                             let imgFrom = parseInt(splitedName[2]);
                             let imgTo = parseInt(splitedName[3]);
                             let currentFrameLength = imgTo-imgFrom;
 
                             // Set the frame length and start frame using media A as the main media.
-                            if ($mediaToBeImported == 'A'){
+                            if (tmpMediaToBeImported == 'A'){
                                 $videoTotalFrameLength = currentFrameLength;
                                 $videoStartFrame = imgFrom;
                             }
-                            if ($mediaToBeImported == 'B'){
+
+                            // Make sure the length of Media B is the same as Media A.
+                            if (tmpMediaToBeImported == 'B'){
                                 if ($videoTotalFrameLength != currentFrameLength){
                                     console.log("Length are different");
                                     throw BreakError;
@@ -116,31 +126,18 @@
                                 let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
                                 tmpImageName = tmpImageName.replace(/\\/g, '/');
 
-                                if ($mediaToBeImported == 'A'){
-                                    // Create the array of image paths
-                                    raw_images_a.paths.push(tmpImageName);
+                                // Create the array of image paths
+                                refObject.paths.push(tmpImageName);
 
-                                    // Create the array that will contain the right order of frames already cached
-                                    raw_images_a.order.push(0);
+                                // Create the array that will contain the right order of frames already cached
+                                refObject.order.push(0);
 
-                                    // Update the bar cache status to 0 (non-cached)
-                                    raw_images_a.pushToProgress(0);
-                                }
+                                // Update the bar cache status to 0 (non-cached)
+                                refObject.pushToProgress(0);
 
-                                if ($mediaToBeImported == 'B'){
-                                    // Create the array of image paths
-                                    raw_images_b.paths.push(tmpImageName);
-
-                                    // Create the array that will contain the right order of frames already cached
-                                    raw_images_b.order.push(0);
-
-                                    // Update the bar cache status to 0 (non-cached)
-                                    raw_images_b.pushToProgress(0);
-
-                                    // 
+                                if (tmpMediaToBeImported == 'B'){
                                     rawImageFramesDiff.push(null);
                                 }
-
                             }
                         }
                     }
@@ -148,34 +145,25 @@
                         console.log("It's a single image");
                         console.log("CurrentMedia: ", currentMedia);
 
-                        if ($mediaToBeImported == 'A'){
+                        if (tmpMediaToBeImported == 'A'){
                             $videoTotalFrameLength = 0;
                             $videoStartFrame = 1;
-
-                            // Create the array of image paths
-                            raw_images_a.paths.push(currentMedia.path);
-
-                            // Create the array that will contain the right order of frames already cached
-                            raw_images_a.order.push(0);
-
-                            // Update the bar cache status to 0 (non-cached)
-                            raw_images_a.pushToProgress(0);
                         }
 
-                        if ($mediaToBeImported == 'B'){
+                        // Create the array of image paths
+                        refObject.paths.push(currentMedia.path);
+
+                        // Create the array that will contain the right order of frames already cached
+                        refObject.order.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        refObject.pushToProgress(0);
+
+                        if (tmpMediaToBeImported == 'B'){
                             if ($videoTotalFrameLength != 0){
                                 console.log("Lengths are different");
                                 throw BreakError;
                             }
-
-                            // Create the array of image paths
-                            raw_images_b.paths.push(currentMedia.path);
-
-                            // Create the array that will contain the right order of frames already cached
-                            raw_images_b.order.push(0);
-
-                            // Update the bar cache status to 0 (non-cached)
-                            raw_images_b.pushToProgress(0);
 
                             // 
                             rawImageFramesDiff.push(null);
@@ -187,15 +175,6 @@
                 }
                 else{ // If don't then it's a video file.
                     console.log("It's a video file!");
-                    console.log(currentMedia.path);
-
-                    let refObject = null;
-                    let tmpMediaToBeImported = $mediaToBeImported;
-
-                    if ($mediaToBeImported == 'A') refObject = raw_images_a;
-                    if ($mediaToBeImported == 'B') refObject = raw_images_b;
-
-                    $mediaToBeImported = "";
 
                     try {
 
@@ -258,22 +237,17 @@
 
                 // If it gets here it's because there was not any type of error or mismatch.
                 console.log("Start Caching...");
-                $mediaToBeImported = ""
-                //startCaching();
             } catch (err) {
 
                 // Clear cache
-                if ($mediaToBeImported == 'A'){
+                if (tmpMediaToBeImported == 'A'){
                     raw_images_a.clearAll();
                     $mediaSlot[0] = null;
                     $mediaSlot[1] = null;
                 }
                 
                 raw_images_b.clearAll();
-                
                 rawImageFramesDiff = [];
-
-                $mediaToBeImported = '';
                 console.log(" # Error: ", err);
             }
         }
@@ -299,20 +273,6 @@
         unsubscribe();
         unsubIntViewerSize();
     });
-
-    /*function createWorker(workersParams) {
-        return new Promise(function(resolve) {
-            var cacheWorker = new WorkerBuilder(workerFile);
-
-            // Send request to a web worker.
-            cacheWorker.postMessage(workersParams);
-            console.log('Message posted to worker');
-
-            cacheWorker.onmessage = function(event){
-                resolve(event.data);
-            };
-        });
-    }*/
 
      function cacheFrame(nFrame, cMediaSlot){
 
