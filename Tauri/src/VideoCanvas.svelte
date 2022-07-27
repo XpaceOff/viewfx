@@ -266,7 +266,8 @@
 
                 // If it gets here it's because there was not any type of error or mismatch.
                 console.log("Start Caching...");
-                startCaching();
+                $mediaToBeImported = ""
+                //startCaching();
             } catch (err) {
 
                 // Clear cache
@@ -297,27 +298,8 @@
 
             // Only reload if the win was scale up
             // and it's no the first cache
-            if ( (interSize[0] > cW) || (interSize[1] > cH) && cW != 0 && cH != 0 ){
+            //if ( (interSize[0] > cW) || (interSize[1] > cH) && cW != 0 && cH != 0 ){}
 
-                // Re-cache media A if it was loaded previously 
-                if (raw_images_a.length > 0 ){
-                    //$mediaToBeImported = 'A';
-
-                    /*for (nFrame in $barFrameCacheStatusA){
-                        $barFrameCacheStatusA[nFrame] = 0;
-                    }*/
-
-                    console.log("Cache A");
-                    //startCaching();
-                }
-                
-                // Re-cache media B if it was loaded previously 
-                if (raw_images_b.imgs.length > 0){
-                    //$mediaToBeImported = 'B';
-                    console.log("Cache B");
-                    //startCaching();
-                }
-            }
         }
     });
 
@@ -326,114 +308,95 @@
         unsubIntViewerSize();
     });
 
-    async function startCaching(){
-        let cMediaSlot = $mediaToBeImported;
+    /*function createWorker(workersParams) {
+        return new Promise(function(resolve) {
+            var cacheWorker = new WorkerBuilder(workerFile);
 
-        for (let nFrame=0; nFrame<=$videoTotalFrameLength; nFrame++){
+            // Send request to a web worker.
+            cacheWorker.postMessage(workersParams);
+            console.log('Message posted to worker');
 
-            let frameNumber = $videoStartFrame + nFrame;
-            let seqImgPaths = null;
+            cacheWorker.onmessage = function(event){
+                resolve(event.data);
+            };
+        });
+    }*/
 
-            if (cMediaSlot == 'A'){
-                // Update the bar cache status to 1 (caching)
-                raw_images_a.setStatusAtFrame(1, nFrame);
+     function cacheFrame(nFrame, cMediaSlot){
 
-                seqImgPaths = raw_images_a.paths;
-            }
+        let frameNumber = $videoStartFrame + nFrame;
+        let seqImgPaths = null;
+        let refObject = null;
 
-            if (cMediaSlot == 'B'){
-                // Update the bar cache status to 1 (caching)
-                raw_images_b.setStatusAtFrame(1, nFrame);
-
-                seqImgPaths = raw_images_b.paths;
-            }
-
-            let queryParams = {
-                src_img_type: imgTypeToLoadFrom,
-                load_full_img: $isLoadFullImg,
-                img_full_path: seqImgPaths[nFrame],
-                frame_number: frameNumber,
-                canvas_w: $canvasSize[0],
-                canvas_h: $canvasSize[1]
-            }
-
-            //console.log(" # queryParams: ", queryParams);
-
-            // Use WebWorkers to avoid lagging the window while gettin the image data 
-            if (window.Worker){
-                var cacheWorker = new WorkerBuilder(workerFile);
-
-                // Send request to a web worker.
-                cacheWorker.postMessage([queryParams, $addrAndPort]);
-                //console.log('Message posted to worker');
-
-                // Data received from the web worker.
-                cacheWorker.onmessage = function(e) {
-                    //console.log(e.data);
-                    //console.log('Message received from worker');
-
-                    if ( !e.data.error ){
-                        // Push an array of the image's raw data into rawImageFrames
-                        //let raw = e.data.image_raw_data;
-                        let r_imgDimensions = e.data.img_dimensions;
-                        let r_currentFrame = e.data.frame_number;
-    
-                        cW = r_imgDimensions[0];
-                        cH = r_imgDimensions[1];
-    
-                        if (cMediaSlot == 'A'){
-                            // Save the images paths into the array
-                            raw_images_a.imgs.push([e.data.image_raw_data, r_imgDimensions]);
-            
-                            // Save the right order of frames
-                            raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
-            
-                            // Update the bar cache status to 2 (cached)
-                            raw_images_a.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
-                        }
-    
-                        if (cMediaSlot == 'B'){
-                            // Save the images paths into the array
-                            raw_images_b.imgs.push([e.data.image_raw_data, r_imgDimensions]);
-            
-                            // Save the right order of frames
-                            raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
-            
-                            // Update the bar cache status to 2 (cached)
-                            raw_images_b.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
-                        }
-                    }
-                    else{ // There was a problem while getting the image data.
-                        let r_currentFrame = e.data.frame_number;
-
-                        if (cMediaSlot == 'A'){
-                            // Save the images paths into the array
-                            raw_images_a.imgs.push([]);
-            
-                            // Save the right order of frames
-                            raw_images_a.order[r_currentFrame - $videoStartFrame] = raw_images_a.imgs.length - 1;
-            
-                            // Update the bar cache status to 3 (error)
-                            raw_images_a.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
-                        }
-    
-                        if (cMediaSlot == 'B'){
-                            // Save the images paths into the array
-                            raw_images_b.imgs.push([]);
-            
-                            // Save the right order of frames
-                            raw_images_b.order[r_currentFrame - $videoStartFrame] = raw_images_b.imgs.length - 1;
-            
-                            // Update the bar cache status to 3 (error)
-                            raw_images_b.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
-                        }
-
-                    }
-                }
-            }
+        if (cMediaSlot == 'A'){
+            refObject = raw_images_a;
         }
 
-        $mediaToBeImported = "";
+        if (cMediaSlot == 'B'){
+            refObject = raw_images_b;
+        }
+
+        // Update the bar cache status to 1 (caching)
+        refObject.setStatusAtFrame(1, nFrame);
+        seqImgPaths = refObject.paths;
+
+        let queryParams = {
+            src_img_type: imgTypeToLoadFrom,
+            load_full_img: $isLoadFullImg,
+            img_full_path: seqImgPaths[nFrame],
+            frame_number: frameNumber,
+            canvas_w: $canvasSize[0],
+            canvas_h: $canvasSize[1]
+        }
+
+        //console.log(" # queryParams: ", queryParams);
+
+        // Use WebWorkers to avoid lagging the window while gettin the image data 
+        if (window.Worker){
+            var cacheWorker = new WorkerBuilder(workerFile);
+
+            // Send request to a web worker.
+            cacheWorker.postMessage([queryParams, $addrAndPort]);
+            //console.log('Message posted to worker');
+
+            // When data is received from the web worker.
+            cacheWorker.onmessage = function(e) {
+                //console.log(e.data);
+                //console.log('Message received from worker');
+
+                if ( !e.data.error ){
+                    // Push an array of the image's raw data into rawImageFrames
+                    //let raw = e.data.image_raw_data;
+                    let r_imgDimensions = e.data.img_dimensions;
+                    let r_currentFrame = e.data.frame_number;
+
+                    cW = r_imgDimensions[0];
+                    cH = r_imgDimensions[1];
+
+                    // Save the image's pixels and dimensions
+                    refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+    
+                    // Save the right order of frames
+                    refObject.order[r_currentFrame - $videoStartFrame] = refObject.imgs.length - 1;
+    
+                    // Update the bar cache status to 2 (cached)
+                    refObject.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                }
+                else{ // There was a problem while getting the image data.
+                    let r_currentFrame = e.data.frame_number;
+    
+                    // Update the bar cache status to 3 (error)
+                    refObject.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
+                }
+            }
+
+            console.log("OUT");
+            return(cacheWorker);
+        }
+
+        return(null);
+
+        //$mediaToBeImported = "";
     }
 
     async function updateCanvas(time) {
@@ -449,6 +412,7 @@
                 ];
 
                 if ($imgDrawOnCanvasIsA){
+
                     // Update canvas if the image is cached
                     if ($progressA[$videoCurrentFrame] == 2){
 
@@ -519,9 +483,19 @@
 
                         lastFrameTime = time;
                     }
+                    else{ // If the image is not cahed yet then cache it.
+                        
+                        // Cache the frame if it's not caching already
+                        if ($progressA[$videoCurrentFrame] != 1){
+
+                            // Get the worker in case we need to terminated later.
+                            raw_images_a.workers[$videoCurrentFrame] = cacheFrame($videoCurrentFrame, 'A');
+                        }
+                    }
                 }
 
                 if ($imgDrawOnCanvasIsB){
+
                     // Update canvas if the image is cached
                     if ($progressB[$videoCurrentFrame] == 2){
                         // TODO: Get the image size and update the variables
@@ -533,9 +507,18 @@
                         context.putImageData(currentImageData, 0, 0);
                         lastFrameTime = time;
                     }
+                    else{ // If the image is not cahed yet then cache it.
+                        
+                        // Cache the frame if it's not caching already
+                        if ($progressB[$videoCurrentFrame] != 1){
+
+                            // Get the worker in case we need to terminated later.
+                            raw_images_b.workers[$videoCurrentFrame] = cacheFrame($videoCurrentFrame, 'B');
+                        }
+                    }
                 }
                 
-                // If player is not paused inc the frame number
+                // If player is not paused then inc the frame number
                 if (!($isVideoPaused)){
                     if ($videoCurrentFrame == $videoTotalFrameLength){
                         $videoCurrentFrame = 0;

@@ -1,6 +1,6 @@
 <script>
     import { fs, path } from "@tauri-apps/api"
-    import { modalSelectedDirPath, mediaSlot, isModalActive, modalListOfFiles, modalListOfFilesError, mediaToBeImported, videoTotalFrameLength, osSepChar } from "../stores";
+    import { modalSelectedDirPath, mediaSlot, isModalActive, mediaToBeImported, videoTotalFrameLength, osSepChar } from "../stores";
     import StdModalContainer from "./StdModalContainer.svelte";
     import StdSquareButton from "./Buttons/StdSquareButton.svelte";
     import { getQuickAccessDirs } from "../dirFunctions/quickAccess";
@@ -320,7 +320,6 @@ import { join } from "@tauri-apps/api/path";
                         if ($mediaToBeImported == 'A'){
                             $mediaSlot[0] = selectedFileObj;  // Cache new media A
                             console.log($mediaSlot);
-                            
                         }
 
                         if ($mediaToBeImported == 'B'){
