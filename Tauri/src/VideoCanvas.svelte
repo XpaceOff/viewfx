@@ -81,8 +81,6 @@
                 // Clear canvas 
                 context.clearRect(0, 0, canvas.width, canvas.height);
 
-                console.log(currentMedia.file_type);
-
                 // If it's a Image/images
                 if (currentMedia.file_type == "IMG"){
 
@@ -191,6 +189,14 @@
                     console.log("It's a video file!");
                     console.log(currentMedia.path);
 
+                    let refObject = null;
+                    let tmpMediaToBeImported = $mediaToBeImported;
+
+                    if ($mediaToBeImported == 'A') refObject = raw_images_a;
+                    if ($mediaToBeImported == 'B') refObject = raw_images_b;
+
+                    $mediaToBeImported = "";
+
                     try {
 
                         // Get the metadata of the video
@@ -202,13 +208,13 @@
 
                         console.log("Metadata from video received!", data_from_rust);
 
-                        if ($mediaToBeImported == 'A'){
+                        if (tmpMediaToBeImported == 'A'){
                             console.log("Frame length: ", data_from_rust.data.frame_length);
                             $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
                             //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
                             $videoStartFrame = 0;
                         }
-                        if ($mediaToBeImported == 'B'){
+                        if (tmpMediaToBeImported == 'B'){
                             if ($videoTotalFrameLength != data_from_rust.data.frame_length - 1){
                                 console.log("Lengths are different");
                                 throw BreakError;
@@ -217,28 +223,16 @@
 
                         for (let x=0; x<=$videoTotalFrameLength; x++){
 
-                            if ($mediaToBeImported == 'A'){
-                                // Create the array of image paths
-                                raw_images_a.paths.push(currentMedia.path);
+                            // Create the array of image paths
+                            refObject.paths.push(currentMedia.path);
 
-                                // Create the array that will contain the right order of frames already cached
-                                raw_images_a.order.push(0);
+                            // Create the array that will contain the right order of frames already cached
+                            refObject.order.push(0);
 
-                                // Update the bar cache status to 0 (non-cached)
-                                raw_images_a.pushToProgress(0);
-                            }
+                            // Update the bar cache status to 0 (non-cached)
+                            refObject.pushToProgress(0);
 
-                            if ($mediaToBeImported == 'B'){
-                                // Create the array of image paths
-                                raw_images_b.paths.push(currentMedia.path);
-
-                                // Create the array that will contain the right order of frames already cached
-                                raw_images_b.order.push(0);
-
-                                // Update the bar cache status to 0 (non-cached)
-                                raw_images_b.pushToProgress(0);
-
-                                // 
+                            if (tmpMediaToBeImported == 'B'){
                                 rawImageFramesDiff.push(null);
                             }
                         }
@@ -259,8 +253,6 @@
 
                         throw error;
                     }
-
-                    console.log("Data from rust loaded!");
 
                 }
 

@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "viewfx",
-    "version": "0.10.20"
+    "version": "0.11.1"
   },
   "tauri": {
     "allowlist": {
