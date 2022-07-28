@@ -488,31 +488,6 @@
                             if (raw_images_b.isPreCached()) bgCache('B');
                         }
 
-                        // If there is any frame that has not been cached yet
-                        /*if (raw_images_a.workers.length <= $videoTotalFrameLength){
-                            let cachedCounter = $videoCurrentFrame;
-
-                            for (let i=$videoCurrentFrame; i<$progressA.length; i++) {
-                                //console.log(i, "<", tmpProgress.length);
-
-                                if ($progressA[i] == 2) cachedCounter++;
-                                else{
-                                    if ($progressA[i] != 1){
-                                        if (cachedCounter > 0){
-                                            let nlCache = 5;
-
-                                            for (let nc=1; nc<nlCache; nc++) {
-                                                if ($progressA[i-nc] == 2){
-                                                    raw_images_a.workers[i] = cacheFrame(i, 'A');
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }*/ 
-
                     }
                     else{ // If the image is not cahed yet then cache it.
                         

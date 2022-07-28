@@ -1,5 +1,4 @@
-import { writable, get } from 'svelte/store';
-import { onDestroy } from 'svelte';
+import { writable } from 'svelte/store';
 
 class RawImageFrames {
     constructor() {
