@@ -57,22 +57,23 @@
         // When there is at least one media to be cached
         if ((value[0] || value[1]) && $mediaToBeImported != ""){
 
+            let currentMedia = null;    // media to be cached.
+
+            let refObject = null;
+            let tmpMediaToBeImported = $mediaToBeImported;
+
+            if (tmpMediaToBeImported == 'A') {
+                currentMedia = value[0];
+                refObject = raw_images_a;
+            }
+            if (tmpMediaToBeImported == 'B') {
+                currentMedia = value[1];
+                refObject = raw_images_b;
+            }
+
+            $mediaToBeImported = "";
+            
             try {
-                let currentMedia = null;    // media to be cached.
-
-                let refObject = null;
-                let tmpMediaToBeImported = $mediaToBeImported;
-
-                if ($mediaToBeImported == 'A') {
-                    currentMedia = value[0];
-                    refObject = raw_images_a;
-                }
-                if ($mediaToBeImported == 'B') {
-                    currentMedia = value[1];
-                    refObject = raw_images_b;
-                }
-
-                $mediaToBeImported = "";
 
                 // Clear old Data
                 if (tmpMediaToBeImported == 'A'){
@@ -82,6 +83,8 @@
                     $imgDrawOnCanvasIsB = false;
                 }
                 
+                $imgDrawOnCanvasIsAB = false;
+                $imgDrawOnCanvasIsDiff = false;
                 raw_images_b.clearAll();
                 
                 $videoCurrentFrame = 0;
@@ -243,9 +246,9 @@
                 if (tmpMediaToBeImported == 'A'){
                     raw_images_a.clearAll();
                     $mediaSlot[0] = null;
-                    $mediaSlot[1] = null;
                 }
                 
+                $mediaSlot[1] = null;
                 raw_images_b.clearAll();
                 rawImageFramesDiff = [];
                 console.log(" # Error: ", err);
@@ -274,7 +277,7 @@
         unsubIntViewerSize();
     });
 
-     function cacheFrame(nFrame, cMediaSlot){
+    function cacheFrame(nFrame, cMediaSlot){
 
         let frameNumber = $videoStartFrame + nFrame;
         let seqImgPaths = null;
@@ -349,6 +352,51 @@
         return(null);
 
         //$mediaToBeImported = "";
+    }
+
+    function bgCache(cMediaSlot){
+
+        let refObject = null;
+        let progressRef = null;
+
+        if (cMediaSlot == 'A'){
+            refObject = raw_images_a;
+            progressRef = $progressA;
+        }
+        if (cMediaSlot == 'B'){
+            refObject = raw_images_b;
+            progressRef = $progressB;
+        }
+
+        // If there is any frame that has not been cached yet
+        if (refObject.workers.length <= $videoTotalFrameLength){
+            let cachedCounter = 0;
+
+            for (let i=$videoCurrentFrame; i<progressRef.length; i++) {
+
+                if (progressRef[i] == 2) cachedCounter++;
+                else{
+                    if (progressRef[i] != 1){
+                        if (cachedCounter > 0){
+                            let nlCache = 5; // number of frames to cache on the background at one time.
+
+                            for (let nc=1; nc<nlCache; nc++) {
+                                if (progressRef[i-nc] == 2){
+                                    refObject.workers[i] = cacheFrame(i, cMediaSlot);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (cachedCounter == 0){
+                if (progressRef[$videoCurrentFrame] != 1){
+                    refObject.workers[$videoCurrentFrame] = cacheFrame($videoCurrentFrame, cMediaSlot);
+                }
+            }
+        }
     }
 
     async function updateCanvas(time) {
@@ -434,6 +482,37 @@
                         }
 
                         lastFrameTime = time;
+
+                        bgCache('A');
+                        if (raw_images_a.workers.length > $videoTotalFrameLength){
+                            if (raw_images_b.isPreCached()) bgCache('B');
+                        }
+
+                        // If there is any frame that has not been cached yet
+                        /*if (raw_images_a.workers.length <= $videoTotalFrameLength){
+                            let cachedCounter = $videoCurrentFrame;
+
+                            for (let i=$videoCurrentFrame; i<$progressA.length; i++) {
+                                //console.log(i, "<", tmpProgress.length);
+
+                                if ($progressA[i] == 2) cachedCounter++;
+                                else{
+                                    if ($progressA[i] != 1){
+                                        if (cachedCounter > 0){
+                                            let nlCache = 5;
+
+                                            for (let nc=1; nc<nlCache; nc++) {
+                                                if ($progressA[i-nc] == 2){
+                                                    raw_images_a.workers[i] = cacheFrame(i, 'A');
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }*/ 
+
                     }
                     else{ // If the image is not cahed yet then cache it.
                         
@@ -458,6 +537,8 @@
             
                         context.putImageData(currentImageData, 0, 0);
                         lastFrameTime = time;
+
+                        bgCache('B');
                     }
                     else{ // If the image is not cahed yet then cache it.
                         

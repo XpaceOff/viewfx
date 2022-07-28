@@ -1,4 +1,5 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
+import { onDestroy } from 'svelte';
 
 class RawImageFrames {
     constructor() {
@@ -36,6 +37,14 @@ class RawImageFrames {
             p[frame] = status;
             return(p);
         });
+    }
+
+    isPreCached(){
+        let r = false;
+
+        if (this.paths.length > 0) r = true;
+
+        return(r);
     }
 
 }
