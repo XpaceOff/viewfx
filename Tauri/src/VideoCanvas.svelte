@@ -325,8 +325,10 @@
                     let r_imgDimensions = e.data.img_dimensions;
                     let r_currentFrame = e.data.frame_number;
 
-                    cW = r_imgDimensions.width;
-                    cH = r_imgDimensions.height;
+                    if (cMediaSlot == 'A'){
+                        cW = r_imgDimensions.width;
+                        cH = r_imgDimensions.height;
+                    }
 
                     // Save the image's pixels and dimensions
                     //refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
@@ -439,8 +441,12 @@
                                 // Draw Image A
                                 context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
     
-                                //currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
-                                currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
+                                //currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
+                                currentImageData = new ImageData(
+                                    raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data,
+                                    raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.width,
+                                    raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.height
+                                );
 
                                 let bW = 0;
                                 if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
@@ -468,7 +474,13 @@
                                     //var imgCopyA = new Image();
                                     //imgCopyA.src = canvas.toDataURL();
         
-                                    let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
+                                    //let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
+                                    let diffImageData = new ImageData(
+                                        raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data,
+                                        raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.width,
+                                        raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.height
+                                    );
+
                                     diffImageData = await createImageBitmap(diffImageData);
                                     //context.putImageData(diffImageData, 0, 0);
         
