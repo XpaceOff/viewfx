@@ -44,7 +44,10 @@ export default () => {
                 postMessage({
                     error: false,
                     image_raw_data: raw,
-                    img_dimensions: r_imgDimensions,
+                    img_dimensions: {
+                        width: r_imgDimensions[0],
+                        height: r_imgDimensions[1]
+                    },
                     frame_number: r_currentFrame
                 });
             })

@@ -325,11 +325,15 @@
                     let r_imgDimensions = e.data.img_dimensions;
                     let r_currentFrame = e.data.frame_number;
 
-                    cW = r_imgDimensions[0];
-                    cH = r_imgDimensions[1];
+                    cW = r_imgDimensions.width;
+                    cH = r_imgDimensions.height;
 
                     // Save the image's pixels and dimensions
-                    refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+                    //refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+                    refObject.imgs.push({
+                        raw_data: e.data.image_raw_data,
+                        dimensions: {...e.data.img_dimensions}
+                    });
     
                     // Save the right order of frames
                     refObject.order[r_currentFrame - $videoStartFrame] = refObject.imgs.length - 1;
@@ -417,10 +421,10 @@
                     if ($progressA[$videoCurrentFrame] == 2){
 
                         // TODO: Get the image size and update the variables
-                        imgW = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][1][0];
-                        imgH = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][1][1];
+                        imgW = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]].dimensions.width;
+                        imgH = raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]].dimensions.height;
         
-                        let currentImageData = new ImageData(raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]][0], imgW, imgH);
+                        let currentImageData = new ImageData(raw_images_a.imgs[raw_images_a.order[$videoCurrentFrame]].raw_data, imgW, imgH);
             
                         if ($imgDrawOnCanvasIsAB){
                             // Update canvas if the image B is cached
@@ -435,8 +439,9 @@
                                 // Draw Image A
                                 context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
     
-                                currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
-                                
+                                //currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                                currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
+
                                 let bW = 0;
                                 if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
                                 else bW = parseInt($canvasSize[0] - aW) * scaleRatio;
@@ -463,7 +468,7 @@
                                     //var imgCopyA = new Image();
                                     //imgCopyA.src = canvas.toDataURL();
         
-                                    let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                                    let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
                                     diffImageData = await createImageBitmap(diffImageData);
                                     //context.putImageData(diffImageData, 0, 0);
         
@@ -505,10 +510,10 @@
                     // Update canvas if the image is cached
                     if ($progressB[$videoCurrentFrame] == 2){
                         // TODO: Get the image size and update the variables
-                        imgW = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][1][0];
-                        imgH = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][1][1];
+                        imgW = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.width;
+                        imgH = raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.height;
         
-                        let currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]][0], imgW, imgH);
+                        let currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
             
                         context.putImageData(currentImageData, 0, 0);
                         lastFrameTime = time;
