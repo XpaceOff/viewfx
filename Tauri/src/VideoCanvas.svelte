@@ -6,6 +6,8 @@
     import WorkerBuilder from "./Workers/worker-builder";
     import workerFile from "./Workers/cacheWorker";
     import axios from "axios";
+    import { toast } from '@zerodevx/svelte-toast'
+    import { notification_error, notification_success, notification_warning } from './Notifications/theme01'
 
     export let parentW;
 
@@ -120,6 +122,8 @@
                             if (tmpMediaToBeImported == 'B'){
                                 if ($videoTotalFrameLength != currentFrameLength){
                                     console.log("Length are different");
+
+                                    notification_error(`<strong>Error:</strong><br> You can only compare videos/images-seq with the same frame length.`)
                                     throw BreakError;
                                 }
                             }
@@ -165,6 +169,8 @@
                         if (tmpMediaToBeImported == 'B'){
                             if ($videoTotalFrameLength != 0){
                                 console.log("Lengths are different");
+
+                                notification_error(`<strong>Error:</strong><br> You can only compare videos/images-seq with the same frame length.`)
                                 throw BreakError;
                             }
 
@@ -179,68 +185,64 @@
                 else{ // If don't then it's a video file.
                     console.log("It's a video file!");
 
-                    try {
 
-                        // Get the metadata of the video
-                        const data_from_rust = await axios.get('http://'+$addrAndPort+'/video_metadata', {
-                            params: {
-                                video_full_path: currentMedia.path,
-                            }
-                        });
 
-                        console.log("Metadata from video received!", data_from_rust);
-
-                        if (tmpMediaToBeImported == 'A'){
-                            console.log("Frame length: ", data_from_rust.data.frame_length);
-                            $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
-                            //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
-                            $videoStartFrame = 0;
+                    // Get the metadata of the video
+                    const data_from_rust = await axios.get('http://'+$addrAndPort+'/video_metadata', {
+                        params: {
+                            video_full_path: currentMedia.path,
                         }
-                        if (tmpMediaToBeImported == 'B'){
-                            if ($videoTotalFrameLength != data_from_rust.data.frame_length - 1){
-                                console.log("Lengths are different");
-                                throw BreakError;
-                            }
+                    }).catch(function (error) {
+                        if (error.response) {
+                            console.log(error.response);
+                            notification_error(`<strong>Error:</strong><br>` + error.response.data);
                         }
-
-                        for (let x=0; x<=$videoTotalFrameLength; x++){
-
-                            // Create the array of image paths
-                            refObject.paths.push(currentMedia.path);
-
-                            // Create the array that will contain the right order of frames already cached
-                            refObject.order.push(0);
-
-                            // Update the bar cache status to 0 (non-cached)
-                            refObject.pushToProgress(0);
-
-                            if (tmpMediaToBeImported == 'B'){
-                                rawImageFramesDiff.push(null);
-                            }
-                        }
-
-                        imgTypeToLoadFrom = "FROM_VIDEO";
-
-                    } catch (error) {
-
-                        if (error == BreakError){
-                            console.log("Frame mismatch error");
-                        }
-                        else{
-                            console.log("Error reading the video. Maybe FFmpeg?");
-                        }
-
-                        // TODO: remember to handle this error and make sure that is bug free.
-                        console.error(error);
 
                         throw error;
+                    });
+
+                    console.log("Metadata from video received!", data_from_rust);
+
+                    if (tmpMediaToBeImported == 'A'){
+                        console.log("Frame length: ", data_from_rust.data.frame_length);
+                        $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
+                        //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
+                        $videoStartFrame = 0;
                     }
+                    if (tmpMediaToBeImported == 'B'){
+                        if ($videoTotalFrameLength != data_from_rust.data.frame_length - 1){
+                            console.log("Lengths are different");
+
+                            notification_error(`<strong>Error:</strong><br> You can only compare videos/images-seq with the same frame length.`)
+                            throw BreakError;
+                        }
+                    }
+
+                    for (let x=0; x<=$videoTotalFrameLength; x++){
+
+                        // Create the array of image paths
+                        refObject.paths.push(currentMedia.path);
+
+                        // Create the array that will contain the right order of frames already cached
+                        refObject.order.push(0);
+
+                        // Update the bar cache status to 0 (non-cached)
+                        refObject.pushToProgress(0);
+
+                        if (tmpMediaToBeImported == 'B'){
+                            rawImageFramesDiff.push(null);
+                        }
+                    }
+
+                    imgTypeToLoadFrom = "FROM_VIDEO";
 
                 }
 
                 // If it gets here it's because there was not any type of error or mismatch.
                 console.log("Start Caching...");
             } catch (err) {
+
+                //notification_warning("Cleaning up...");
 
                 // Clear cache
                 if (tmpMediaToBeImported == 'A'){
@@ -344,6 +346,9 @@
                     refObject.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
                 }
                 else{ // There was a problem while getting the image data.
+
+                    //notification_error(`<strong>Error:</strong><br> There was a problem while getting the image data.`)
+
                     let r_currentFrame = e.data.frame_number;
     
                     // Update the bar cache status to 3 (error)
@@ -351,7 +356,6 @@
                 }
             }
 
-            console.log("OUT");
             return(cacheWorker);
         }
 
