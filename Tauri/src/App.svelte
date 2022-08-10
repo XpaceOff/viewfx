@@ -60,7 +60,7 @@
 				</div>
 			{/if}
 		</div>
-		<div class="flex w-full h-32 bg-zinc-800 pt-2">
+		<div class="flex w-full h-24 bg-zinc-800 pt-2">
 			<Bar></Bar>
 		</div>
 	</div>

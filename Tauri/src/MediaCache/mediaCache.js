@@ -7,6 +7,11 @@ class RawImageFrames {
         this.paths = [];    // List of paths of each image.
         this.workers = [];  // List of webworkers for each frame. Useful to terminate when needed.
         this.progress = writable([]);   // List with the progress bar info.
+
+        this.firstSize = {
+            width: 0,
+            height: 0
+        }
     }
 
     clearAll() {
@@ -20,6 +25,11 @@ class RawImageFrames {
             if (this.workers[w] !== undefined) {
                 this.workers[w].terminate();
             }
+        }
+
+        this.firstSize = {
+            width: 0,
+            height: 0
         }
 
         this.workers = [];

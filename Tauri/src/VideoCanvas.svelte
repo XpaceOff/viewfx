@@ -297,13 +297,19 @@
         refObject.setStatusAtFrame(1, nFrame);
         seqImgPaths = refObject.paths;
 
+        // Set image to the first image size.
+        if (refObject.firstSize.width == 0 && refObject.firstSize.height == 0){
+            refObject.firstSize.width = $canvasSize[0];
+            refObject.firstSize.height = $canvasSize[1];
+        }
+
         let queryParams = {
             src_img_type: imgTypeToLoadFrom,
             load_full_img: $isLoadFullImg,
             img_full_path: seqImgPaths[nFrame],
             frame_number: frameNumber,
-            canvas_w: $canvasSize[0],
-            canvas_h: $canvasSize[1]
+            canvas_w: refObject.firstSize.width,
+            canvas_h: refObject.firstSize.height
         }
 
         //console.log(" # queryParams: ", queryParams);
@@ -334,6 +340,8 @@
 
                     // Save the image's pixels and dimensions
                     //refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
+                    console.log(JSON.stringify(e.data.image_raw_data).replace(/[\[\]\,\"]/g,'').length);
+                    console.log(e.data.img_dimensions);
                     refObject.imgs.push({
                         raw_data: e.data.image_raw_data,
                         dimensions: {...e.data.img_dimensions}
@@ -382,11 +390,12 @@
         if (refObject.workers.length <= $videoTotalFrameLength){
             let cachedCounter = 0;
 
+            // Go throw the progress bar of the current media.
             for (let i=$videoCurrentFrame; i<progressRef.length; i++) {
 
                 if (progressRef[i] == 2) cachedCounter++;
                 else{
-                    if (progressRef[i] != 1){
+                    if (progressRef[i] != 1){ //If its not caching yet.
                         if (cachedCounter > 0){
                             let nlCache = 5; // number of frames to cache on the background at one time.
 

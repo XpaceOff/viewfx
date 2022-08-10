@@ -24,8 +24,11 @@
     }
 </script>
 
-<div class="flex flex-col w-full h-full">
-    <div class="flex flex-row w-full h-full items-start justify-center">
+<div class="flex flex-row w-full h-full">
+    <div class="flex flex-row w-2/12 h-full items-center justify-center">
+    </div>
+
+    <div class="flex flex-row w-8/12 h-full items-center justify-center">
 
         <!-- Prev Button-->
         <StdButton01 on:click={ prevFrame }  cssIcon={"fa-backward-step"}></StdButton01>
@@ -36,5 +39,8 @@
         <!-- Next Button-->
         <StdButton01 on:click={ nextFrame } cssIcon={"fa-forward-step"}></StdButton01>
 
+    </div>
+
+    <div class="flex flex-row w-2/12 h-full items-center justify-center">
     </div>
 </div>

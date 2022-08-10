@@ -12,7 +12,7 @@
 </script>
 
 <div class="flex flex-col w-full h-full">
-    <div class="flex w-full h-2/6 py-0.5">
+    <div class="flex w-full h-10 py-0.5">
 
         <!-- Start Frame Text-->
         <div class="flex shrink-0 w-12 h-full select-none justify-center items-center py-0.5 px-1">
@@ -110,7 +110,7 @@
         </div>
 
     </div>
-    <div class="flex w-full h-4/6 bg-zinc-800 p-1 rounded-b-lg">
+    <div class="flex w-full h-full justify-center bg-zinc-800 p-1 rounded-b-lg">
         <VideoControlArea></VideoControlArea>
     </div>
 </div>
