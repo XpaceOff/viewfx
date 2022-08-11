@@ -50,6 +50,8 @@ export default () => {
                     },
                     frame_number: r_currentFrame
                 });
+
+                close();
             })
             .catch((error) => {
     
@@ -58,6 +60,8 @@ export default () => {
                     error_type: error.message,
                     frame_number: e.data[0].frame_number
                 });
+
+                close();
             });
 
         }
