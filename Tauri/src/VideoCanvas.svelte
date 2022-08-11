@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
-    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort } from "./stores";
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb} from "./stores";
     import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
     import WorkerBuilder from "./Workers/worker-builder";
     import workerFile from "./Workers/cacheWorker";
@@ -50,7 +50,6 @@
 
     // Pre-cache Media once `mediaSlot` is changed
     const unsubscribe = mediaSlot.subscribe(async (value) => {
-        // TODO: all this function have to be re-written
 
         // When a plate is selected in the modal, and then clicked the button `import`
         // this will Update the store $mediaSlot. This store is an array of two values
@@ -83,6 +82,7 @@
                     $mediaSlot[1] = null;
                     $imgDrawOnCanvasIsA = true;
                     $imgDrawOnCanvasIsB = false;
+                    $usedCacheMb = 0;
                 }
                 
                 $imgDrawOnCanvasIsAB = false;
@@ -91,6 +91,8 @@
                 
                 $videoCurrentFrame = 0;
                 rawImageFramesDiff = [];
+
+                console.log("Data cleared!");
 
                 // Clear canvas 
                 context.clearRect(0, 0, canvas.width, canvas.height);
@@ -248,6 +250,7 @@
                 if (tmpMediaToBeImported == 'A'){
                     raw_images_a.clearAll();
                     $mediaSlot[0] = null;
+                    $usedCacheMb = 0;
                 }
                 
                 $mediaSlot[1] = null;
@@ -293,78 +296,92 @@
             refObject = raw_images_b;
         }
 
-        // Update the bar cache status to 1 (caching)
-        refObject.setStatusAtFrame(1, nFrame);
-        seqImgPaths = refObject.paths;
-
-        // Set image to the first image size.
-        if (refObject.firstSize.width == 0 && refObject.firstSize.height == 0){
-            refObject.firstSize.width = $canvasSize[0];
-            refObject.firstSize.height = $canvasSize[1];
-        }
-
-        let queryParams = {
-            src_img_type: imgTypeToLoadFrom,
-            load_full_img: $isLoadFullImg,
-            img_full_path: seqImgPaths[nFrame],
-            frame_number: frameNumber,
-            canvas_w: refObject.firstSize.width,
-            canvas_h: refObject.firstSize.height
-        }
-
-        //console.log(" # queryParams: ", queryParams);
-
-        // Use WebWorkers to avoid lagging the window while gettin the image data 
-        if (window.Worker){
-            var cacheWorker = new WorkerBuilder(workerFile);
-
-            // Send request to a web worker.
-            cacheWorker.postMessage([queryParams, $addrAndPort]);
-            //console.log('Message posted to worker');
-
-            // When data is received from the web worker.
-            cacheWorker.onmessage = function(e) {
-                //console.log(e.data);
-                //console.log('Message received from worker');
-
-                if ( !e.data.error ){
-                    // Push an array of the image's raw data into rawImageFrames
-                    //let raw = e.data.image_raw_data;
-                    let r_imgDimensions = e.data.img_dimensions;
-                    let r_currentFrame = e.data.frame_number;
-
-                    if (cMediaSlot == 'A'){
-                        cW = r_imgDimensions.width;
-                        cH = r_imgDimensions.height;
+        if ($usedCacheMb < $limitCacheMb) {
+    
+            // Update the bar cache status to 1 (caching)
+            refObject.setStatusAtFrame(1, nFrame);
+            seqImgPaths = refObject.paths;
+    
+            // Set image to the first image size.
+            if (refObject.firstSize.width == 0 && refObject.firstSize.height == 0){
+                refObject.firstSize.width = $canvasSize[0];
+                refObject.firstSize.height = $canvasSize[1];
+            }
+    
+            let queryParams = {
+                src_img_type: imgTypeToLoadFrom,
+                load_full_img: $isLoadFullImg,
+                img_full_path: seqImgPaths[nFrame],
+                frame_number: frameNumber,
+                canvas_w: refObject.firstSize.width,
+                canvas_h: refObject.firstSize.height
+            }
+    
+            //console.log(" # queryParams: ", queryParams);
+    
+            // Use WebWorkers to avoid lagging the window while gettin the image data 
+            if (window.Worker){
+                let cacheWorker = new WorkerBuilder(workerFile);
+    
+                // Send request to a web worker.
+                cacheWorker.postMessage([queryParams, $addrAndPort]);
+                //console.log('Message posted to worker');
+    
+                // When data is received from the web worker.
+                cacheWorker.onmessage = function(e) {
+                    //console.log(e.data);
+                    //console.log('Message received from worker');
+    
+                    if ( !e.data.error ){
+                        // Push an array of the image's raw data into rawImageFrames
+                        //let raw = e.data.image_raw_data;
+                        let r_imgDimensions = e.data.img_dimensions;
+                        let r_currentFrame = e.data.frame_number;
+    
+                        if (cMediaSlot == 'A'){
+                            cW = r_imgDimensions.width;
+                            cH = r_imgDimensions.height;
+                        }
+    
+                        // Save the image's pixels and dimensions
+                        refObject.imgs.push({
+                            raw_data: e.data.image_raw_data,
+                            //raw_data: [],
+                            dimensions: {...e.data.img_dimensions}
+                        });
+    
+                        //i = a.length;
+                        //while(i--) refObject.imgs[refObject.imgs.length - 1].raw_data = a[i];
+                        e.data.image_raw_data = null;
+    
+    
+                        $usedCacheMb += (r_imgDimensions.width * r_imgDimensions.height) * 4 / 1000000;
+                        console.log($usedCacheMb);
+        
+                        // Save the right order of frames
+                        refObject.order[r_currentFrame - $videoStartFrame] = refObject.imgs.length - 1;
+        
+                        // Update the bar cache status to 2 (cached)
+                        refObject.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
                     }
-
-                    // Save the image's pixels and dimensions
-                    //refObject.imgs.push([e.data.image_raw_data, r_imgDimensions]);
-                    console.log(JSON.stringify(e.data.image_raw_data).replace(/[\[\]\,\"]/g,'').length);
-                    console.log(e.data.img_dimensions);
-                    refObject.imgs.push({
-                        raw_data: e.data.image_raw_data,
-                        dimensions: {...e.data.img_dimensions}
-                    });
+                    else{ // There was a problem while getting the image data.
     
-                    // Save the right order of frames
-                    refObject.order[r_currentFrame - $videoStartFrame] = refObject.imgs.length - 1;
+                        //notification_error(`<strong>Error:</strong><br> There was a problem while getting the image data.`)
     
-                    // Update the bar cache status to 2 (cached)
-                    refObject.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
+                        let r_currentFrame = e.data.frame_number;
+        
+                        // Update the bar cache status to 3 (error)
+                        refObject.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
+                    }
                 }
-                else{ // There was a problem while getting the image data.
-
-                    //notification_error(`<strong>Error:</strong><br> There was a problem while getting the image data.`)
-
-                    let r_currentFrame = e.data.frame_number;
     
-                    // Update the bar cache status to 3 (error)
-                    refObject.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
-                }
+                return(cacheWorker);
             }
 
-            return(cacheWorker);
+        }
+        else{ // cache limit.
+            // Update the bar cache status to 3 (error)
+            refObject.setStatusAtFrame(3, (frameNumber - $videoStartFrame));
         }
 
         return(null);
@@ -484,7 +501,7 @@
                                 // If the diff image is not cached yet then start the computation
                                 if (rawImageFramesDiff[$videoCurrentFrame] == null){
                                     // 
-                                    //var imgCopyA = new Image();
+                                    //let imgCopyA = new Image();
                                     //imgCopyA.src = canvas.toDataURL();
         
                                     //let diffImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
@@ -561,6 +578,21 @@
                     if ($videoCurrentFrame == $videoTotalFrameLength){
                         $videoCurrentFrame = 0;
                     } else {
+
+                        /*if ($imgDrawOnCanvasIsA){
+                            //
+                            if ($progressA[$videoCurrentFrame + 1] == 2){
+                                $videoCurrentFrame = $videoCurrentFrame + 1;
+                            }
+                        }
+
+                        if ($imgDrawOnCanvasIsB){
+                            //
+                            if ($progressB[$videoCurrentFrame + 1] == 2){
+                                $videoCurrentFrame = $videoCurrentFrame + 1;
+                            }
+                        }*/
+
                         $videoCurrentFrame = $videoCurrentFrame + 1;
                     }
                 }

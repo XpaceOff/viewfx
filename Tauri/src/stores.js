@@ -69,3 +69,7 @@ export const isCanvasAutoReload = writable(false);
 export const isLoadFullImg = writable(false);
 
 export const addrAndPort = writable("127.0.0.1:3000");
+
+// cache size in megabytes.
+export const limitCacheMb = writable(100.0);
+export const usedCacheMb = writable(0.0);
