@@ -509,8 +509,8 @@
                             // Update canvas if the image B is cached
                             if ($progressB[$videoCurrentFrame] == 2){
                                 let scaleRatio = cW / $canvasSize[0];
-    
-                                let aW = $abHandlePos - Math.abs( (parentW - $canvasSize[0]) / 2 );
+
+                                let aW = $abHandlePos - ((parentW - $canvasSize[0]) / 2) ;
                                 aW = parseInt(aW * scaleRatio);
     
                                 if (aW < 0) aW = 0;
@@ -526,10 +526,7 @@
                                 );
 
                                 let bW = 0;
-                                if (cW > $canvasSize[0]) bW = parseInt(cW - aW);
-                                else bW = parseInt($canvasSize[0] - aW) * scaleRatio;
-    
-                                //console.log($abHandlePos, $canvasSize[0], aW, bW);
+                                bW = Math.abs(parseInt($canvasSize[0] - aW) * scaleRatio);
                                 
                                 // Draw Image B
                                 context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
