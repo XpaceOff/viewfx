@@ -187,8 +187,6 @@
                 else{ // If don't then it's a video file.
                     console.log("It's a video file!");
 
-
-
                     // Get the metadata of the video
                     const data_from_rust = await axios.get('http://'+$addrAndPort+'/video_metadata', {
                         params: {
@@ -288,6 +286,10 @@
         let seqImgPaths = null;
         let refObject = null;
 
+        // number of images deleted. 
+        // Useful to calculate the usedCacheMb.
+        let cacheDelCount = 0;
+
         if (cMediaSlot == 'A'){
             refObject = raw_images_a;
         }
@@ -296,18 +298,21 @@
             refObject = raw_images_b;
         }
 
-        if ($usedCacheMb < $limitCacheMb) {
+        if ($usedCacheMb < $limitCacheMb){
     
             // Update the bar cache status to 1 (caching)
             refObject.setStatusAtFrame(1, nFrame);
             seqImgPaths = refObject.paths;
-    
+
+            // Keep count of the used cache.
+            $usedCacheMb += (refObject.firstSize.width * refObject.firstSize.height) * 4 / 1000000;
+
             // Set image to the first image size.
             if (refObject.firstSize.width == 0 && refObject.firstSize.height == 0){
                 refObject.firstSize.width = $canvasSize[0];
                 refObject.firstSize.height = $canvasSize[1];
             }
-    
+
             let queryParams = {
                 src_img_type: imgTypeToLoadFrom,
                 load_full_img: $isLoadFullImg,
@@ -316,47 +321,40 @@
                 canvas_w: refObject.firstSize.width,
                 canvas_h: refObject.firstSize.height
             }
-    
+
             //console.log(" # queryParams: ", queryParams);
-    
+
             // Use WebWorkers to avoid lagging the window while gettin the image data 
             if (window.Worker){
                 let cacheWorker = new WorkerBuilder(workerFile);
-    
+
                 // Send request to a web worker.
                 cacheWorker.postMessage([queryParams, $addrAndPort]);
                 //console.log('Message posted to worker');
-    
+
                 // When data is received from the web worker.
                 cacheWorker.onmessage = function(e) {
                     //console.log(e.data);
                     //console.log('Message received from worker');
-    
+
                     if ( !e.data.error ){
                         // Push an array of the image's raw data into rawImageFrames
                         //let raw = e.data.image_raw_data;
                         let r_imgDimensions = e.data.img_dimensions;
                         let r_currentFrame = e.data.frame_number;
-    
+
                         if (cMediaSlot == 'A'){
                             cW = r_imgDimensions.width;
                             cH = r_imgDimensions.height;
                         }
-    
+
                         // Save the image's pixels and dimensions
                         refObject.imgs.push({
                             raw_data: e.data.image_raw_data,
-                            //raw_data: [],
                             dimensions: {...e.data.img_dimensions}
                         });
-    
-                        //i = a.length;
-                        //while(i--) refObject.imgs[refObject.imgs.length - 1].raw_data = a[i];
+
                         e.data.image_raw_data = null;
-    
-    
-                        $usedCacheMb += (r_imgDimensions.width * r_imgDimensions.height) * 4 / 1000000;
-                        console.log($usedCacheMb);
         
                         // Save the right order of frames
                         refObject.order[r_currentFrame - $videoStartFrame] = refObject.imgs.length - 1;
@@ -365,28 +363,76 @@
                         refObject.setStatusAtFrame(2, (r_currentFrame - $videoStartFrame));
                     }
                     else{ // There was a problem while getting the image data.
-    
+
                         //notification_error(`<strong>Error:</strong><br> There was a problem while getting the image data.`)
-    
+
                         let r_currentFrame = e.data.frame_number;
+
+                        // Keep track of the used cache.
+                        $usedCacheMb += (e.data.img_dimensions.width * e.data.img_dimensions.height) * 4 / 1000000;
         
                         // Update the bar cache status to 3 (error)
                         refObject.setStatusAtFrame(3, (r_currentFrame - $videoStartFrame));
                     }
                 }
-    
+
                 return(cacheWorker);
             }
+        }
+        else{// If nor then clear some memory.
 
+            if ($videoCurrentFrame >= $videoTotalFrameLength/2){
+                for (let i=0; i<=$videoCurrentFrame-2; i++){
+    
+                    // If the frame has already been cached.
+                    if ($progressA[i] == 2){
+                        // Clear the cache of that frame.
+                        raw_images_a.imgs[raw_images_a.order[i]] = null;
+                        raw_images_a.setStatusAtFrame(0, i);
+                        cacheDelCount++;
+                    }
+
+                    // If the frame in media B is cached then clear it as well.
+                    if ($progressB[i] == 2){
+                        // Clear the cache of that frame.
+                        raw_images_b.imgs[raw_images_b.order[i]] = null;
+                        raw_images_b.setStatusAtFrame(0, i);
+                        cacheDelCount++;
+                    }
+
+                    if (cacheDelCount) break;
+                }
+            }
+            else{
+                for (let i=$videoTotalFrameLength; i>=0; i--){
+                    // If the frame has already been cached.
+                    if ($progressA[i] == 2){
+                        // Clear the cache of that frame.
+                        raw_images_a.imgs[raw_images_a.order[i]] = null;
+                        raw_images_a.setStatusAtFrame(0, i);
+                        cacheDelCount++;
+                    }
+
+                    // If the frame in media B is cached then clear it as well.
+                    if ($progressB[i] == 2){
+                        // Clear the cache of that frame.
+                        raw_images_b.imgs[raw_images_b.order[i]] = null;
+                        raw_images_b.setStatusAtFrame(0, i);
+                        cacheDelCount++;
+                    }
+
+                    if (cacheDelCount) break;
+                }
+            }
+
+            let tmpImgSize = ((raw_images_a.firstSize.width * raw_images_a.firstSize.height) * 4 / 1000000) * cacheDelCount;
+            $usedCacheMb = $usedCacheMb - tmpImgSize;
+            cacheDelCount = 0;
         }
-        else{ // cache limit.
-            // Update the bar cache status to 3 (error)
-            refObject.setStatusAtFrame(3, (frameNumber - $videoStartFrame));
-        }
+
+        //console.log($usedCacheMb);
 
         return(null);
-
-        //$mediaToBeImported = "";
     }
 
     function bgCache(cMediaSlot){
@@ -415,6 +461,7 @@
                     if (progressRef[i] != 1){ //If its not caching yet.
                         if (cachedCounter > 0){
                             let nlCache = 5; // number of frames to cache on the background at one time.
+                            if ($usedCacheMb >= $limitCacheMb) nlCache = 1;
 
                             for (let nc=1; nc<nlCache; nc++) {
                                 if (progressRef[i-nc] == 2){
@@ -573,27 +620,83 @@
                     }
                 }
                 
-                // If player is not paused then inc the frame number
+                // If player is not paused then increment the frame number
                 if (!($isVideoPaused)){
-                    if ($videoCurrentFrame == $videoTotalFrameLength){
-                        $videoCurrentFrame = 0;
-                    } else {
 
-                        /*if ($imgDrawOnCanvasIsA){
-                            //
-                            if ($progressA[$videoCurrentFrame + 1] == 2){
-                                $videoCurrentFrame = $videoCurrentFrame + 1;
+                    let tmpProgress = null;
+                    if ($imgDrawOnCanvasIsA) tmpProgress = $progressA;
+                    if ($imgDrawOnCanvasIsB) tmpProgress = $progressB;
+
+                    // If the current frame is the last one then
+                    if ($videoCurrentFrame == $videoTotalFrameLength){
+                        // Select the FIRST CACHED frame.
+                        for (let i=0; i<$videoTotalFrameLength; i++){
+
+                            // If the Ab or the Diff mode is ON then make sure that both frames are cached.
+                            if ($imgDrawOnCanvasIsAB || $imgDrawOnCanvasIsDiff){
+                                if ($progressA[i] == 2 && $progressB[i]== 2){
+                                    $videoCurrentFrame = i;
+                                    break;
+                                }
+                            }
+                            else if (tmpProgress[i] == 2){
+                                $videoCurrentFrame = i;
+                                break;
                             }
                         }
+                    } else {
 
-                        if ($imgDrawOnCanvasIsB){
-                            //
-                            if ($progressB[$videoCurrentFrame + 1] == 2){
+                        // If the next frame is already cached then select it.
+                        let gotoNextFrame = false;
+
+                        // If the AB or the Diff mode is ON then make sure that both frames are cached.
+                        if ($imgDrawOnCanvasIsAB || $imgDrawOnCanvasIsDiff){
+                            if ($progressA[$videoCurrentFrame + 1] == 2 && $progressB[$videoCurrentFrame + 1]== 2){
                                 $videoCurrentFrame = $videoCurrentFrame + 1;
+                                gotoNextFrame = true;
                             }
-                        }*/
+                        }
+                        else if (tmpProgress[$videoCurrentFrame + 1] == 2){
+                            $videoCurrentFrame = $videoCurrentFrame + 1;
+                            gotoNextFrame = true;
+                        }
 
-                        $videoCurrentFrame = $videoCurrentFrame + 1;
+                        // If the next frame is NOT cached yet then.
+                        if (!gotoNextFrame){
+                            // Look for the next cached frame.
+                            let cachedFrameFound = false;
+
+                            for (let i=$videoCurrentFrame+1; i<$videoTotalFrameLength; i++){
+                                // If the AB or the Diff mode is ON then make sure that both frames are cached.
+                                if ($imgDrawOnCanvasIsAB || $imgDrawOnCanvasIsDiff){
+                                    if ($progressA[i] == 2 && $progressB[i]== 2){
+                                        $videoCurrentFrame = i;
+                                        cachedFrameFound = true;
+                                    }
+                                }
+                                else if (tmpProgress[i] == 2){
+                                    $videoCurrentFrame = i;
+                                    cachedFrameFound = true;
+                                }
+                            }
+
+                            if (!cachedFrameFound){
+                                for (let i=0; i<$videoTotalFrameLength; i++){
+
+                                    // If the AB or the Diff mode is ON then make sure that both frames are cached.
+                                    if ($imgDrawOnCanvasIsAB || $imgDrawOnCanvasIsDiff){
+                                        if ($progressA[i] == 2 && $progressB[i]== 2){
+                                            $videoCurrentFrame = i;
+                                            break;
+                                        }
+                                    }
+                                    else if (tmpProgress[i] == 2){
+                                        $videoCurrentFrame = i;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
     

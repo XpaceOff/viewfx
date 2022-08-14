@@ -22,7 +22,8 @@ class RawImageFrames {
 
         // Terminate any worker that is currently caching.
         for (let w in this.workers) {
-            if (this.workers[w] !== undefined) {
+            if (this.workers[w] !== undefined && this.workers[w] !== null) {
+                console.log("Worker to terminate: ", w, this.workers[w]);
                 this.workers[w].terminate();
             }
         }
