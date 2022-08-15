@@ -9,6 +9,7 @@
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { path } from "@tauri-apps/api"
 	import { SvelteToast } from '@zerodevx/svelte-toast'
+	import SettingsWin from './SettingsWin/SettingsWin.svelte'
 
 	// Get the backend bridge's ip and port.
 	invoke('get_bg_addr').then((addr_and_port) => {
@@ -51,6 +52,7 @@
 				parentW={$internalViewwerSize[0]}
 			/>
 			<SvelteToast />
+			<SettingsWin/>
 
 			<!-- Only show ViewFX logo if no media has been loaded -->
 			{#if !($mediaSlot[0] || $mediaSlot[1])}
