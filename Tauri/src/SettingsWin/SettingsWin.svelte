@@ -1,7 +1,8 @@
 <script>
-    import { isSettingsWinOpen, limitCacheMb } from '../stores.js'
+    import { isSettingsWinOpen, limitCacheMb, isInfoLogOn } from '../stores.js'
     import { fly } from 'svelte/transition';
     import SettingNumInput from './SettingNumInput.svelte';
+    import SettingBoolInput from './SettingBoolInput.svelte';
 </script>
 
 {#if $isSettingsWinOpen}
@@ -16,6 +17,11 @@
             <SettingNumInput
                 tittle="Cache limit"
                 bind:value={$limitCacheMb}
+            />
+
+            <SettingBoolInput
+                tittle="Info Log"
+                bind:value={$isInfoLogOn}
             />
 
         </div>

@@ -5,7 +5,7 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar, isInfoLogOn } from './stores'
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { path } from "@tauri-apps/api"
 	import { SvelteToast } from '@zerodevx/svelte-toast'
@@ -46,7 +46,11 @@
 			<VideoCanvas
 				parentW={$internalViewwerSize[0]}
 			/>
-			<Fps></Fps>
+
+			{#if $isInfoLogOn}
+				<Fps></Fps>
+			{/if}
+
 			<AbSeparator
 				parentH={$internalViewwerSize[1]}
 				parentW={$internalViewwerSize[0]}

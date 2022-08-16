@@ -13,7 +13,7 @@
     }
 </script>
 
-<div class="flex flex-row w-full hover:bg-zinc-600 px-2 py-1 rounded-lg text-zinc-500 hover:text-zinc-300">
+<div class="flex flex-row w-full hover:bg-zinc-600 px-2 py-1 rounded-lg text-zinc-500 hover:text-zinc-300 items-center">
     <div class="flex w-8/12">
         {tittle}
     </div>

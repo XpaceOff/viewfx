@@ -75,3 +75,5 @@ export const limitCacheMb = writable(2000.0);
 export const usedCacheMb = writable(0.0);
 
 export const isSettingsWinOpen = writable(false);
+
+export const isInfoLogOn = writable(false);
