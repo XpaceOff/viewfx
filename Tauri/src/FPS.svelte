@@ -1,10 +1,17 @@
 <script>
+	import { getVersion } from '@tauri-apps/api/app';
+	import { onMount } from 'svelte';
 	
+	let appVersion = "";
 	let text = '';
 
 	let elapsed = 0;
 	let frames = 0;
 	let prevTime = performance.now();
+
+	onMount(async () => {
+		appVersion = await getVersion();
+	});
 
     function fpsCalculation(){
         let time = performance.now();
@@ -23,10 +30,15 @@
 </script>
 
 <div class="absolute top-9 left-2 opacity-50 select-none">
-    <h3 class="h3">
-		Canvas refresh rate:
-        {text}
-    </h3>
+	<div class="flex flex-col">
+		<h3 class="h3">
+			Canvas refresh rate:
+			{text}
+		</h3>
+		<h3 class="h3">
+			App version: {appVersion}
+		</h3>
+	</div>
 </div>
 
 

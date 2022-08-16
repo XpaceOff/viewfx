@@ -7,6 +7,7 @@
         let userValue = e.target.value;
         userValue = parseInt(userValue.replace(/\D/g, ''));
 
+        if (isNaN(userValue) || userValue === null || userValue === undefined) userValue = min;
         if (userValue < min) userValue = min;
 
         value = userValue;

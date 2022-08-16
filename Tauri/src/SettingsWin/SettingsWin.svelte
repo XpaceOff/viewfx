@@ -1,5 +1,5 @@
 <script>
-    import { isSettingsWinOpen, limitCacheMb, isInfoLogOn } from '../stores.js'
+    import { isSettingsWinOpen, limitCacheMb, isDevInfoOn } from '../stores.js'
     import { fly } from 'svelte/transition';
     import SettingNumInput from './SettingNumInput.svelte';
     import SettingBoolInput from './SettingBoolInput.svelte';
@@ -20,8 +20,8 @@
             />
 
             <SettingBoolInput
-                tittle="Info Log"
-                bind:value={$isInfoLogOn}
+                tittle="Dev information"
+                bind:value={$isDevInfoOn}
             />
 
         </div>

@@ -76,4 +76,5 @@ export const usedCacheMb = writable(0.0);
 
 export const isSettingsWinOpen = writable(false);
 
-export const isInfoLogOn = writable(false);
+// If this is on you will be able to see the dev info on canvas.
+export const isDevInfoOn = writable(false);
