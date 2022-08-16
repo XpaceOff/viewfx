@@ -1,11 +1,11 @@
 <script>
     export let tittle;
     export let value;
-    export let min = 10;
+    export let min = 10.0;
    
     function validate(e){
         let userValue = e.target.value;
-        userValue = parseInt(userValue.replace(/\D/g, ''));
+        userValue = parseFloat(userValue.replace(/[^\d.]/g, ''));
 
         if (isNaN(userValue) || userValue === null || userValue === undefined) userValue = min;
         if (userValue < min) userValue = min;

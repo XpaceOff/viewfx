@@ -15,7 +15,7 @@
             <p class="text-2xl text-zinc-300 mb-4">Settings</p>
 
             <SettingNumInput
-                tittle="Cache limit"
+                tittle="Cache limit (Mb)"
                 bind:value={$limitCacheMb}
             />
 
