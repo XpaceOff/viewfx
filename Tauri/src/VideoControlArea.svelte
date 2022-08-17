@@ -2,6 +2,7 @@
     import { isVideoPaused, videoCurrentFrame, videoStartFrame, videoTotalFrameLength } from './stores';
     import StdButton01 from './Playback/Buttons/StdButton01.svelte';
     import PlayButton from './Playback/Buttons/PlayButton.svelte';
+    import FpsInput from './Playback/FpsInput.svelte';
 
     function updatePlayStatus(){
         $isVideoPaused = !($isVideoPaused);
@@ -25,7 +26,8 @@
 </script>
 
 <div class="flex flex-row w-full h-full">
-    <div class="flex flex-row w-2/12 h-full items-center justify-center">
+    <div class="flex flex-row w-2/12 h-full items-center">
+        <FpsInput/>
     </div>
 
     <div class="flex flex-row w-8/12 h-full items-center justify-center">

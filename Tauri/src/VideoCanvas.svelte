@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
-    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb} from "./stores";
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb, videoFps} from "./stores";
     import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
     import WorkerBuilder from "./Workers/worker-builder";
     import workerFile from "./Workers/cacheWorker";
@@ -10,6 +10,10 @@
     import { notification_error, notification_success, notification_warning } from './Notifications/theme01'
 
     export let parentW;
+
+    let realtF = 0;
+    let realtT = 0;
+    let realt = 0;
 
     // Image variables
     let progressA = raw_images_a.progress;
@@ -484,10 +488,13 @@
 
     async function updateCanvas(time) {
 
+        // If there is a Media A loaded.
         if (raw_images_a.order.length > 0){
+
             // 24 frames per second (1000/24fps = 41.66):
             // Update the canvas every X frames per second 
-            if (time > lastFrameTime + 41.66) {
+            if (time >= lastFrameTime) {
+                //console.log("tDiff: "+(time-tFps)+" "+$videoFps+" fps");
 
                 $canvasSize = [
                     Math.floor(canvas.getBoundingClientRect().width),
@@ -572,8 +579,6 @@
                             }
                         }
 
-                        lastFrameTime = time;
-
                         bgCache('A');
                         if (raw_images_a.workers.length > $videoTotalFrameLength){
                             if (raw_images_b.isPreCached()) bgCache('B');
@@ -602,7 +607,6 @@
                         let currentImageData = new ImageData(raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].raw_data, imgW, imgH);
             
                         context.putImageData(currentImageData, 0, 0);
-                        lastFrameTime = time;
 
                         bgCache('B');
                     }
@@ -696,8 +700,24 @@
                         }
                     }
                 }
+
+                realtF += 1;
+                //lastFrameTime = performance.now();
+                //lastFrameTime = time + ((1000.0-$videoFps) / $videoFps) - 7;
+                lastFrameTime = time + (1000.0 / $videoFps);
+                //lastFrameTime = time + $videoFps;
     
             }
+        }
+
+        //realt = performance.now();
+        realt = time;
+        if (realt - realtT >= 1000.0){
+            //console.log(performance.now()+" "+lastFrameTime);
+
+            realtT = time;//performance.now();
+            console.log("real t f: ", realtF);
+            realtF = 0;
         }
 
         // Refresh canvas

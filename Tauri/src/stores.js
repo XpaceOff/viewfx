@@ -44,6 +44,9 @@ export const videoStartFrame = writable(0);
 // Frame that is selected or displayed at the time
 export const videoCurrentFrame = writable(0);
 
+// Video's fps
+export const videoFps = writable(23.976);
+
 // Pause Status
 // If off then video plays
 export const isVideoPaused = writable(true);
@@ -74,6 +77,7 @@ export const addrAndPort = writable("127.0.0.1:3000");
 export const limitCacheMb = writable(2000.0);
 export const usedCacheMb = writable(0.0);
 
+// If on then the settings window is open.
 export const isSettingsWinOpen = writable(false);
 
 // If this is on you will be able to see the dev info on canvas.
