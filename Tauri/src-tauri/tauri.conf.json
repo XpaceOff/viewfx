@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "viewfx",
-    "version": "0.15.0"
+    "version": "0.16.0"
   },
   "tauri": {
     "allowlist": {
@@ -24,7 +24,7 @@
           "$DOWNLOAD/*"
         ],
         "readFile": true,
-        "writeFile": false,
+        "writeFile": true,
         "readDir": true,
         "copyFile": false,
         "createDir": false,

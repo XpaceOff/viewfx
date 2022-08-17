@@ -5,11 +5,36 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar, isDevInfoOn } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar } from './stores'
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { path } from "@tauri-apps/api"
 	import { SvelteToast } from '@zerodevx/svelte-toast'
 	import SettingsWin from './SettingsWin/SettingsWin.svelte'
+	import { isDevInfoOn, limitCacheMb } from './stores.js'
+    import { readTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+    import { notification_success, notification_error } from './Notifications/theme01'
+
+	const readConfFile = async () => {
+        try {
+            let confContent = await readTextFile(
+				"viewfx.conf",{
+               		dir: BaseDirectory.LocalData
+				}
+			);
+
+			confContent = JSON.parse(confContent);
+			console.log(confContent);
+
+			// Update this list if you add more settings.
+			if (confContent.cache_limit) $limitCacheMb = confContent.cache_limit;
+			if (confContent.dev_information) $isDevInfoOn = confContent.dev_information;
+
+            //notification_success(`Configuration file loaded!`)
+        } catch (e) {
+			console.log(e);
+            //notification_error(`<strong>Error:</strong><br>`+e);
+        }
+    };
 
 	// Get the backend bridge's ip and port.
 	invoke('get_bg_addr').then((addr_and_port) => {
@@ -19,17 +44,10 @@
 
 	// Sets the OS separator character.
 	$osSepChar = path.sep;
-	
-	//let newImg = imagedata_to_image(currentImageData);
-
-	//let imgRatioW = canvasW/imgW;
-	//let imgRatioH = canvasH/imgH;
-	//let ratio = Math.min ( imgRatioW, imgRatioH );
-
-	//context.drawImage(newImg, 0, 0, imgW, imgH, (canvasW-imgW*ratio)/2, (canvasH-imgH*ratio)/2, imgW*ratio, imgH*ratio);//, 200, 200);
 
 	export let name;
 	console.log(name);
+	readConfFile();
 </script>
 
 <main class=" h-full w-full overflow-hidden">
