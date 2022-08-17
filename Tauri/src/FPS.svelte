@@ -1,6 +1,7 @@
 <script>
 	import { getVersion } from '@tauri-apps/api/app';
 	import { onMount } from 'svelte';
+	import { videoCurrentFps } from './stores'
 	
 	let appVersion = "";
 	let text = '';
@@ -37,6 +38,9 @@
 		</h3>
 		<h3 class="h3">
 			App version: {appVersion}
+		</h3>
+		<h3 class="h3">
+			Current FPS: {$videoCurrentFps}
 		</h3>
 	</div>
 </div>

@@ -46,6 +46,7 @@ export const videoCurrentFrame = writable(0);
 
 // Video's fps
 export const videoFps = writable(23.976);
+export const videoCurrentFps = writable(0.0); // This one is the actual fps.
 
 // Pause Status
 // If off then video plays

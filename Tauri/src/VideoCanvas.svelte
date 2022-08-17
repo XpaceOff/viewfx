@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
-    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb, videoFps} from "./stores";
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb, videoFps, videoCurrentFps} from "./stores";
     import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
     import WorkerBuilder from "./Workers/worker-builder";
     import workerFile from "./Workers/cacheWorker";
@@ -11,9 +11,11 @@
 
     export let parentW;
 
-    let realtF = 0;
-    let realtT = 0;
-    let realt = 0;
+    let frameCounter = 0;
+    let rtimeElapsed02 = 0;
+    let timeNow = Date.now();
+    let timeThen = Date.now();
+    let timeElapsed = Date.now();
 
     // Image variables
     let progressA = raw_images_a.progress;
@@ -209,6 +211,7 @@
 
                     if (tmpMediaToBeImported == 'A'){
                         console.log("Frame length: ", data_from_rust.data.frame_length);
+                        $videoFps = !(isNaN(parseFloat(data_from_rust.data.fps))) ? data_from_rust.data.fps : $videoFps;
                         $videoTotalFrameLength = data_from_rust.data.frame_length - 1;
                         //$videoTotalFrameLength = 3; // Just for now. Remember to remove this !!
                         $videoStartFrame = 0;
@@ -491,9 +494,13 @@
         // If there is a Media A loaded.
         if (raw_images_a.order.length > 0){
 
+            timeNow = Date.now();
+            timeElapsed = timeNow - timeThen;
+            let fpsInterval = 1000.0 / $videoFps;
+
             // 24 frames per second (1000/24fps = 41.66):
             // Update the canvas every X frames per second 
-            if (time >= lastFrameTime) {
+            if (timeElapsed > fpsInterval) {
                 //console.log("tDiff: "+(time-tFps)+" "+$videoFps+" fps");
 
                 $canvasSize = [
@@ -701,23 +708,17 @@
                     }
                 }
 
-                realtF += 1;
-                //lastFrameTime = performance.now();
-                //lastFrameTime = time + ((1000.0-$videoFps) / $videoFps) - 7;
-                lastFrameTime = time + (1000.0 / $videoFps);
-                //lastFrameTime = time + $videoFps;
-    
+                frameCounter += 1;
+                timeThen = timeNow - (timeElapsed % fpsInterval);
             }
         }
 
-        //realt = performance.now();
-        realt = time;
-        if (realt - realtT >= 1000.0){
-            //console.log(performance.now()+" "+lastFrameTime);
+        // Calculate nad update the current fps.
+        if (timeNow - rtimeElapsed02 >= 1000.0){
+            $videoCurrentFps = Math.round(1000 / ((timeNow - rtimeElapsed02) / frameCounter) * 100) / 100;
 
-            realtT = time;//performance.now();
-            console.log("real t f: ", realtF);
-            realtF = 0;
+            rtimeElapsed02 = timeNow;
+            frameCounter = 0;
         }
 
         // Refresh canvas
