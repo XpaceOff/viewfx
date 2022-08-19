@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
     import { videoTotalFrameLength, videoCurrentFrame, isVideoPaused, videoStartFrame, canvasSize, mediaSlot, mediaToBeImported, imgDrawOnCanvasIsA, imgDrawOnCanvasIsB, imgDrawOnCanvasIsDiff, imgDrawOnCanvasIsAB, abHandlePos } from './stores'
-    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb, videoFps, videoCurrentFps} from "./stores";
+    import { isCanvasAutoReload, internalViewwerSize, isLoadFullImg, addrAndPort, limitCacheMb, usedCacheMb, videoFps, videoCurrentFps, bridgeHash} from "./stores";
     import { raw_images_a, raw_images_b } from "./MediaCache/mediaCache.js";
     import WorkerBuilder from "./Workers/worker-builder";
     import workerFile from "./Workers/cacheWorker";
@@ -197,6 +197,9 @@
                     const data_from_rust = await axios.get('http://'+$addrAndPort+'/video_metadata', {
                         params: {
                             video_full_path: currentMedia.path,
+                        },
+                        headers: {
+                            'Authorization': 'Bearer '+$bridgeHash,
                         }
                     }).catch(function (error) {
                         if (error.response) {
@@ -336,7 +339,7 @@
                 let cacheWorker = new WorkerBuilder(workerFile);
 
                 // Send request to a web worker.
-                cacheWorker.postMessage([queryParams, $addrAndPort]);
+                cacheWorker.postMessage([queryParams, $addrAndPort, $bridgeHash]);
                 //console.log('Message posted to worker');
 
                 // When data is received from the web worker.

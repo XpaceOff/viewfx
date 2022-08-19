@@ -20,7 +20,10 @@ export default () => {
     
             const options = {
                 method: "GET",
-                signal: controller.signal
+                signal: controller.signal,
+                headers: {
+                    'Authorization': 'Bearer '+e.data[2],
+                }
             };
 
             //console.log("Requesting image data...");

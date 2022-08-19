@@ -5,7 +5,7 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar, bridgeHash } from './stores'
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { path } from "@tauri-apps/api"
 	import { SvelteToast } from '@zerodevx/svelte-toast'
@@ -40,6 +40,12 @@
 	invoke('get_bg_addr').then((addr_and_port) => {
 		$addrAndPort = addr_and_port;
 		console.log(addr_and_port)
+	});
+
+	// Get the backend bridge's ip and port.
+	invoke('get_bg_hash').then((bridge_hash) => {
+		$bridgeHash = bridge_hash;
+		//console.log(bridge_hash)
 	});
 
 	// Sets the OS separator character.

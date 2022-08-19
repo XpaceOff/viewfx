@@ -6,12 +6,20 @@
 // Use Tauri States to set and then get the address:port
 use tauri::State;
 struct BgAddrState(String);
+struct BgHashState(String);
 
 // Function that return the backend address and port.
 #[tauri::command]
 fn get_bg_addr(state: State<BgAddrState>) -> String {
-    println!("state: {}", state.0);
+    println!("# ip:port: {}", state.0);
     state.0.clone()
+}
+
+// Function that return the backend hash.
+#[tauri::command]
+fn get_bg_hash(hash_state: State<BgHashState>) -> String {
+    //println!("hash: {}", hash_state.0);
+    hash_state.0.clone()
 }
 
 use axum::{
@@ -24,10 +32,14 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use image::GenericImageView;
 use tower_http::cors::CorsLayer;
+use tower_http::auth::RequireAuthorizationLayer;
+use tower::ServiceBuilder;
 use std::sync::{Arc, Mutex};
+use http::header::{AUTHORIZATION};
 
 mod viewvid;
 mod viewos;
+mod viewhash;
 
 // Make the main function Async with Tokio
 #[tokio::main]
@@ -35,6 +47,10 @@ async fn main() {
     // variable containing addr:port of backend.
     let addr_data = Arc::new(Mutex::new(String::from("")));
     let addr_data_clone= Arc::clone(&addr_data); // clone it to be able to access it on different threads.
+
+    // Auth token.
+    let bridge_hash = viewhash::generate_hash();
+    let bridge_hash02 = bridge_hash.clone();
 
     // Create a new thread that will run the backend-api/http-bridge
     // to load Images. This solve the bottleneck on Tauri's IPC
@@ -49,20 +65,25 @@ async fn main() {
         .route("/video_metadata", get(viewvid::http_get_vid_metadata))
         .route("/video_frame", get(viewvid::http_get_vid_frame))
         .layer(
-            // CORS Middleware that solves the CORS problem
-            // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
-            // and https://github.com/tokio-rs/axum/blob/main/examples/cors/src/main.rs
-            // for more details
+            ServiceBuilder::new()
+            .layer(
+                // CORS Middleware that solves the CORS problem
+                // see https://docs.rs/tower-http/latest/tower_http/cors/index.html
+                // and https://github.com/tokio-rs/axum/blob/main/examples/cors/src/main.rs
+                // for more details
 
-            // TODO: You might need a way to get the port that Tauri is running on.
-            // If not then the app won't work because of the CORS problem
-            CorsLayer::new()
-            .allow_origin(vec![
-                "http://localhost:8080".parse::<HeaderValue>().unwrap(),    // Dev Mode
-                "https://tauri.localhost".parse::<HeaderValue>().unwrap(),  // Win build mode
-                "tauri://localhost".parse::<HeaderValue>().unwrap()         // Macos built mode
-            ])
-            .allow_methods([Method::GET]),
+                // TODO: You might need a way to get the port that Tauri is running on.
+                // If not then the app won't work because of the CORS problem
+                CorsLayer::new()
+                .allow_origin(vec![
+                    "http://localhost:8080".parse::<HeaderValue>().unwrap(),    // Dev Mode
+                    "https://tauri.localhost".parse::<HeaderValue>().unwrap(),  // Win build mode
+                    "tauri://localhost".parse::<HeaderValue>().unwrap()         // Macos built mode
+                ])
+                .allow_methods([Method::GET])
+                .allow_headers([AUTHORIZATION]),
+            )
+            .layer(RequireAuthorizationLayer::bearer(&bridge_hash02))
         );
   
         // Set the port to `0` to get a random unused port.
@@ -103,7 +124,7 @@ async fn main() {
         let addr_data_clone = addr_data_clone.lock().unwrap();
         let addr_obtained = &*addr_data_clone;
         
-        // Once it changes (gets a port) then build th Tauri app.
+        // Once it changes (gets a port) then build the Tauri app.
         if !(addr_obtained.eq("")) { 
             final_bg_addr = addr_data_clone.clone();
             break;
@@ -113,7 +134,8 @@ async fn main() {
     tauri::Builder::default()
         //.menu(menu)
         .manage(BgAddrState(final_bg_addr.into())) // Sets the bridge port with Tauri's States
-        .invoke_handler(tauri::generate_handler![get_bg_addr])
+        .manage(BgHashState(bridge_hash.into())) // Sets the hash code with Tauri's States
+        .invoke_handler(tauri::generate_handler![get_bg_addr, get_bg_hash])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

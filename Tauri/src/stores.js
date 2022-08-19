@@ -83,3 +83,6 @@ export const isSettingsWinOpen = writable(false);
 
 // If this is on you will be able to see the dev info on canvas.
 export const isDevInfoOn = writable(false);
+
+// This code is generated at runtime and its needed to access the images from th bridge.
+export const bridgeHash = writable("");
