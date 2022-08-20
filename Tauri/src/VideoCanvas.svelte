@@ -525,12 +525,17 @@
                         if ($imgDrawOnCanvasIsAB){
                             // Update canvas if the image B is cached
                             if ($progressB[$videoCurrentFrame] == 2){
+                                //context.clearRect(0, 0, canvas.width, canvas.height);
+
                                 let scaleRatio = cW / $canvasSize[0];
 
+                                let bW = 0;
                                 let aW = $abHandlePos - ((parentW - $canvasSize[0]) / 2) ;
+                                bW = aW;
                                 aW = parseInt(aW * scaleRatio);
     
                                 if (aW < 0) aW = 0;
+                                //console.log("aW: " + aW);
     
                                 // Draw Image A
                                 context.putImageData(currentImageData, 0, 0, 0, 0, aW, imgH);
@@ -541,9 +546,8 @@
                                     raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.width,
                                     raw_images_b.imgs[raw_images_b.order[$videoCurrentFrame]].dimensions.height
                                 );
-
-                                let bW = 0;
-                                bW = Math.abs(parseInt($canvasSize[0] - aW) * scaleRatio);
+                                
+                                bW = Math.abs(parseInt( ($canvasSize[0] - bW) * scaleRatio ));
                                 
                                 // Draw Image B
                                 context.putImageData(currentImageData, 0, 0, aW, 0, bW, imgH);
