@@ -52,13 +52,17 @@ pub async fn http_get_vid_metadata(payload: Query<MetadataQuery>) -> Result<(Sta
         return Err( (StatusCode::BAD_REQUEST, format!("Error: wrong path. \n Path: {:?}", &payload.video_full_path)) );
     }
 
-    println!("# Calling CMD TEST!");
+    println!("# Calling VID METADATA!");
     // TODO: get the right directory for ffmpeg. ffmpeg license TBD.
     // Execute ffmpeg
-    //let ffmpeg_command = "tmpffmpeg/ffmpeg.exe";
-    //let ffmpeg_command = "/Users/spacecomet/Downloads/ffmpeg";
-    //let ffmpeg_command = "bin/ffmpeg";
-    let cmd_output = match tauri::api::process::Command::new_sidecar("./ffmpeg").unwrap()
+
+    #[cfg(windows)]
+    let ffmpeg_command = "ffmpeg";
+
+    #[cfg(not(windows))]
+    let ffmpeg_command = "./ffmpeg";
+
+    let cmd_output = match tauri::api::process::Command::new_sidecar(ffmpeg_command).unwrap()
         .args([
             "-i",
             &payload.video_full_path,
