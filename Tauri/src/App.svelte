@@ -5,7 +5,7 @@
 	import Fps from './FPS.svelte';
 	import AbSeparator from './abSeparator.svelte';
 	import '@fortawesome/fontawesome-free/js/all';
-	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar, bridgeHash } from './stores'
+	import { mediaSlot, internalViewwerSize, addrAndPort, osSepChar, bridgeHash, videoCurrentFrame, videoTotalFrameLength, isVideoPaused } from './stores'
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { path } from "@tauri-apps/api"
 	import { SvelteToast } from '@zerodevx/svelte-toast'
@@ -13,6 +13,24 @@
 	import { isDevInfoOn, limitCacheMb } from './stores.js'
     import { readTextFile, BaseDirectory } from '@tauri-apps/api/fs';
     import { notification_success, notification_error } from './Notifications/theme01'
+
+	
+	function handleKeydown(event) {
+		let key = event.key;
+		//let keyCode = event.keyCode;
+
+		if ( $isVideoPaused ){
+			if ($videoTotalFrameLength > 1){
+				if ( key == "ArrowLeft"){
+					if ( $videoCurrentFrame > 0) $videoCurrentFrame = $videoCurrentFrame - 1;
+				}
+	
+				if ( key == "ArrowRight"){
+					if ( $videoCurrentFrame < $videoTotalFrameLength) $videoCurrentFrame = $videoCurrentFrame + 1;
+				}
+			}
+		}
+	}
 
 	const readConfFile = async () => {
         try {
@@ -95,6 +113,8 @@
 		</div>
 	</div>
 </main>
+
+<svelte:window on:keydown|preventDefault={handleKeydown}/>
 
 <style global lang="postcss">
 	@tailwind base;
