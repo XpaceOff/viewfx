@@ -138,7 +138,9 @@
 
                             for (let x=0; x<=$videoTotalFrameLength; x++){
                                 let preProName = currentMedia.path.match(/^(.+?)([0-9]+)\.(.{3,4})$/);
-                                let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
+                                //let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(3, '0') + '.' + preProName[3] //currentMedia.path.replace(/\\/g, '/');
+                                let tmpImageName = preProName[1] + (''+(x+imgFrom)).padStart(preProName[2].length , '0') + '.' + preProName[3];
+                                
                                 tmpImageName = tmpImageName.replace(/\\/g, '/');
 
                                 // Create the array of image paths
