@@ -114,7 +114,7 @@
 	</div>
 </main>
 
-<svelte:window on:keydown|preventDefault={handleKeydown}/>
+<svelte:window on:keydown={handleKeydown}/>
 
 <style global lang="postcss">
 	@tailwind base;

@@ -1,4 +1,47 @@
 
+# Dev setup
+
+## MacOS
+
+Install the dependencies 
+```bash
+xcode-select --install
+```
+
+Install rust
+```bash
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+```
+
+## Linux (Ubuntu)
+
+Install the dependencies
+```bash
+sudo apt update
+sudo apt install libwebkit2gtk-4.0-dev \
+    build-essential \
+    curl \
+    wget \
+    libssl-dev \
+    libgtk-3-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev \
+    cmake
+```
+
+Install rust
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+
+# Install the app npm dependencies 
+
+cd into the project and type:
+```bash
+npm install
+```
+
 ## Start a new Tauri project
 
 ```bash
