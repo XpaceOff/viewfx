@@ -4,4 +4,4 @@
 WixTools
 
 /tmpffmpeg/
-/bin/*
+/bin/ffmpeg*
