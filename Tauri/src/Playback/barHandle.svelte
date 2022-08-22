@@ -52,7 +52,7 @@
 
 <div
     use:dragMe
-    style="height: {parentH*.8}px; top: 18px; left: {($videoCurrentFrame * parentW / ($videoTotalFrameLength+1)) + (parentW / ($videoTotalFrameLength+1))/2 }px"
+    style="height: {parentH*.5}px; top: 18px; left: {($videoCurrentFrame * parentW / ($videoTotalFrameLength+1)) + (parentW / ($videoTotalFrameLength+1))/2 }px"
     class="{$mediaSlot[0] ? '' : ''} absolute top-0 bg-sky-700 opacity-90 w-[4px] hover:w-2 hover:-m-[2px] cursor-col-resize z-40"
 >
 </div>
