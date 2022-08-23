@@ -1,9 +1,19 @@
+# Reference link
+# https://trac.ffmpeg.org/wiki/CompilationGuide/macOS
 
+# Install Xcode
+xcode-select --install
 
-# WIP
+# install dependencies 
+brew install automake fdk-aac git lame libass libtool libvorbis libvpx \
+opus sdl shtool texi2html theora wget x264 x265 xvid nasm
 
+# Create the tmp directories
+mkdir -p fmpeg_sources bin
+
+cd fmpeg_sources
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
-brew install fdk-aac
+cd ffmpeg
 
 ./configure \
     --cc=/usr/bin/clang \
@@ -23,3 +33,7 @@ brew install fdk-aac
     --disable-libxcb \
     --disable-sdl2 \
     --disable-xlib
+
+make 
+
+cp ffmpeg ../../../bin/ffmpeg-x86_64-apple-darwin
