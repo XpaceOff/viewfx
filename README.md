@@ -2,6 +2,30 @@
   <img src="public/ViewFX_md_v04.png" alt="ViewFX Logo" width="400"/>
 </p>
 
+# What ViewFX is
+
+ViewFX was created for the purpose of making the process of checking post-production work easier. 
+
+When working on post-production, the client offers a *reference video* and the high resolution video. The artist takes the high resolution video and apply the effects asked for from the client. Once the job is done, the artist should always check their work before delivering it. 
+
+I know for experience that a lot of artist in the field don't check their work because maybe they have to wait for after effects or Nuke to finish caching every effect and ending wasting a lor of time. Autodesk created an app called RV viewer. but the problem with it is that it takes too long to open and too long to load. it also does not give an option to compare two videos at the same time. Which is the main reason to cheese ViewFX.
+
+# What ViewFX is not and won't do
+
+- Is not a video player to watch movies on.
+- Is not a music player.
+- It won't play audio.
+
+# What ViewFX offers
+
+- It comes in a very light weigh executable, with a size of under 20mb.
+- it will lwt you play the video while is caching on the background.
+- it will let you load a second video to be compared in two differenct modes:
+    - The `A/B` mode:
+    - The `Diff` mode:
+
+---
+
 # Dev setup
 
 * ## MacOS
@@ -36,3 +60,38 @@
     ```bash
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     ```
+
+Once you have rust and all the dependencies installed, clone the repository and `cd` to the folder. Inside of it:
+
+To install the ViewFX npm dependencies:
+```bash
+npm install
+```
+
+Once that is done, you can run:
+
+```bash
+# Start ViewFX on development mode:
+$ npm run tauri dev
+
+# Or, if you want to build ViewFX
+$ npm run tauri build
+```
+
+## Keep Tauri dependencies up to date
+
+```bash
+# If you use yarn
+$ yarn upgrade @tauri-apps/cli @tauri-apps/api --latest
+
+# If you use npm
+$ npm install @tauri-apps/cli@latest @tauri-apps/api@latest
+
+# Detect versions
+$ npm outdated @tauri-apps/cli
+$ yarn outdated @tauri-apps/cli
+```
+
+---
+
+# How to contribute

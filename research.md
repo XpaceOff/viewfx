@@ -80,20 +80,6 @@ $ npm run tauri dev
 $ npm run tauri build
 ```
 
-## Keep Tauri dependencies up to date
-
-```bash
-# If you use yarn
-$ yarn upgrade @tauri-apps/cli @tauri-apps/api --latest
-
-# if you use npm
-$ npm install @tauri-apps/cli@latest @tauri-apps/api@latest
-
-# Detect versions
-$ npm outdated @tauri-apps/cli
-$ yarn outdated @tauri-apps/cli
-```
-
 ## Install Tailwind on my Svelte project
 
 https://css-tricks.com/how-to-use-tailwind-on-a-svelte-site/
