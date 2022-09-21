@@ -2,13 +2,13 @@
   <img src="public/ViewFX_md_v04.png" alt="ViewFX Logo" width="400"/>
 </p>
 
-# What ViewFX is
+# What is ViewFX?
 
-ViewFX was created for the purpose of making the process of checking post-production work easier. 
+ViewFX was created to make checking post-production work easier. 
 
-When working on post-production, the client offers a *reference video* and the high resolution video. The artist takes the high resolution video and apply the effects asked for from the client. Once the job is done, the artist should always check their work before delivering it. 
+In post-production work, the client provides a *reference video* and a high resolution video. The artist then takes the high resolution video and apply effects to achieve the result requested. Once the job is done, the artist should always check their work before delivering it. 
 
-I know for experience that a lot of artist in the field don't check their work because maybe they have to wait for after effects or Nuke to finish caching every effect and ending wasting a lor of time. Autodesk created an app called RV viewer. but the problem with it is that it takes too long to open and too long to load. it also does not give an option to compare two videos at the same time. Which is the main reason to cheese ViewFX.
+I know from experience that a lot of artists in the field don't check their work before delivery because they have to wait for After Effects or Nuke to finish caching every effect and ending wasting a lor of time. Autodesk created an app called RV viewer. but the problem with it is that it takes too long to open and too long to load. it also does not give an option to compare two videos at the same time. Which is the main reason to cheese ViewFX.
 
 # What ViewFX is not and won't do
 
