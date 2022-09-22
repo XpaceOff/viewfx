@@ -4,25 +4,25 @@
 
 # What is ViewFX?
 
-ViewFX was created to make checking post-production work easier. 
+ViewFX is a multi-platform, lightweight video comparison tool, created to make checking post-production work easier. 
 
 In post-production work, the client provides a *reference video* and a high resolution video. The artist then takes the high resolution video and apply effects to achieve the result requested. Once the job is done, the artist should always check their work before delivering it. 
 
-I know from experience that a lot of artists in the field don't check their work before delivery because they have to wait for After Effects or Nuke to finish caching every effect and ending wasting a lor of time. Autodesk created an app called RV viewer. but the problem with it is that it takes too long to open and too long to load. it also does not give an option to compare two videos at the same time. Which is the main reason to cheese ViewFX.
-
-# What ViewFX is not and won't do
-
-- Is not a video player to watch movies on.
-- Is not a music player.
-- It won't play audio.
+I know from experience that a lot of artists in the field don't check their work before delivery because it can very time-consuming for After Effects or Nuke to finish caching every effect. Autodesk has an app called RV Viewer, but the problem with it is that it takes too long to open and too long to load. It also does not have the option to compare two videos side by side simultaneosly. This is where ViewFX comes in. 
 
 # What ViewFX offers
 
-- It comes in a very light weigh executable, with a size of under 20mb.
-- it will lwt you play the video while is caching on the background.
-- it will let you load a second video to be compared in two differenct modes:
+- It is lightweight, with a size of under 20mb.
+- It allows you to play the video while it is caching on the background.
+- It allows you to compare two videos side by side in the following two modes:
     - The `A/B` mode:
     - The `Diff` mode:
+
+# What ViewFX doesn't do
+
+- It is *not* a video player to watch movies with.
+- It is *not* a music player.
+- It does *not* play audio.
 
 ---
 
@@ -61,7 +61,7 @@ I know from experience that a lot of artists in the field don't check their work
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     ```
 
-Once you have rust and all the dependencies installed, clone the repository and `cd` to the folder. Inside of it:
+Once you have Rust and all the dependencies installed, clone the repository and `cd` to the folder. Inside of it:
 
 To install the ViewFX npm dependencies:
 ```bash
