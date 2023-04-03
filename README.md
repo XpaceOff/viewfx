@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/ViewFX_md_v04.png" alt="ViewFX Logo" width="400"/>
+  <img src="public/ViewFX-logo.jpg" alt="ViewFX Logo" width="400"/>
 </p>
 
 # What is ViewFX?
