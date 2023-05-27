@@ -68,6 +68,14 @@ To install the ViewFX npm dependencies:
 npm install
 ```
 
+ViewFX uses ffmpeg to decode videos. For that reason we have to compile ffmpeg as well:
+
+```bash
+# For linux
+cd src-tauri/ffmpeg
+./build-linux.sh
+```
+
 Once that is done, you can run:
 
 ```bash
