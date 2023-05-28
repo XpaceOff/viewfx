@@ -5,7 +5,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"/>
-    <link rel="stylesheet" href="/responsive.css" />
+    <!-- <link rel="stylesheet" href="/responsive.css" /> -->
     <script defer src="https://unpkg.com/img-comparison-slider@7/dist/index.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/img-comparison-slider@7/dist/styles.css"/>
     <meta charset="UTF-8">
@@ -19,12 +19,12 @@
         <h1>
             <a id="logo-img" href="index.html">
               ViewFX
-<!--               <img src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/logo.svg?v=1667780182971" alt="Logo" id="logo-image" /> -->
+<!--               <img src="img/logo.svg" alt="ViewFX Logo" id="logo-image" /> -->
             </a>
         </h1>
         <nav class="nav-links">
-            <a href="#">Download</a>
-            <a href="index.html"><img class="github" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bytesize_github.svg?v=1667780182367" alt="github" /></a>
+            <a href="download.html">Download</a>
+            <a target="_blank" href="https://github.com/XpaceOff/viewfx"><img class="github" src="img/icons/github.svg" alt="github" /></a>
         </nav>
     </header>
 <!--     </section> -->
@@ -32,16 +32,16 @@
         <div class="hero-wrapper">
             <div class="copy-and-cta">
                 <div class="copy">
-                  <h2>Lightweight, open-source <br>video comparison tool</h2>
+                  <h2>Lightweight, open source video comparison tool</h2>
                   <h3>A quick check on the before &amp; after following rendering your work for best quality delivery.</h3>    
               </div>
                 <div class="cta">
-                    <button>Try it out<img class="chev-left" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bx_chevron-left.svg?v=1668217261588" alt="github" /></button>
+                    <a href="download.html"><button>Try it out<img class="chev-left" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bx_chevron-left.svg?v=1668217261588" alt="github" /></button></a>
                     <span id="cta-its-free">It's free</span>
                 </div>
             </div>
             <div class="hero-image-wrapper">
-                <img class="hero-image" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/hero-placeholder.png?v=1667780182819" alt="ViewFX Sample Image" />
+                <img class="hero-image" src="img/viewfx_before.jpg" alt="ViewFX Sample Image" />
             </div>
         </div>
     </section>
@@ -49,32 +49,42 @@
     <section>  <!-- Four features -->
         <div class="feature-wrapper">
             <div class="feature-container one">
-            
+                <img class="feature-icon" src="img/icons/timer.svg" alt="lightweight icon" />
+                <h5>Lightweight</h5>
+                <p class="feature-text">Built in Tauri. Under 20MG. Minimal RAM usage.</p>
             </div> 
             <div class="feature-container two">
-            
+                <img class="feature-icon" src="img/icons/flashlight.svg" alt="fast icon" />
+                <h5>Lightning Fast</h5>
+                <p class="feature-text">Instant startup. No login required, ever.</p>       
             </div> 
             <div class="feature-container three">
-        
+                <img class="feature-icon" src="img/icons/unlock.svg" alt="open source icon" />
+                <h5>Open Source</h5>
+                <p class="feature-text">Always free. Adaptable to your needs.</p>
             </div> 
             <div class="feature-container four">
-            
+                <img class="feature-icon" src="img/icons/airplay.svg" alt="multiplatform icon" />
+                <h5>Multi Platform</h5>
+                <p class="feature-text">Available in macOS, Windows and Linux.</p>  
             </div> 
         </div>
 
     </section>
     <section class="vid-placefolder">  <!-- Demo Placeholder -->
         <img-comparison-slider>
-          <img slot="first" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/hero-placeholder.png?v=1667780182819" />
-          <img class="img-after" slot="second" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/after.png?v=1668216940670" />
+          <img class="img-after" slot="first" src="img/viewfx_after.jpg" />
+          <img class="img-after" slot="second" src="img/viewfx_before.jpg" />
         </img-comparison-slider>
     </section>
     <section> <!--Last CTA -->
         <div class="last-cta-wrapper">
-            <button id="macos">
-                Get ViewFX for macOS
-            </button>
-            <p>Also available for <a class="win-lin" href="https://example.com">Windows</a> and <a class="win-lin" href="https://example.com">Linux</a>.</p>
+            <a href="download.html"><button>Get ViewFX</button></a>
+            <p class="ffmpeg">
+                This software uses code of <a class="ffmpeg-link" href=http://ffmpeg.org>FFmpeg</a> licensed under the <a class="ffmpeg-link" href=http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>LGPLv2.1</a>and its source can be downloaded <a class="ffmpeg-link" href=link_to_your_sources>here</a>
+            </p>
+            <p>Available on <a class="win-lin" href="https://example.com">macOS</a> ,<a class="win-lin" href="https://example.com">Windows</a>, and <a class="win-lin" href="https://example.com">Linux</a></p>
+
 
         </div>
     </section>
@@ -86,17 +96,18 @@
       <footer>
         <div class="footer-top-wrapper">
             <div class="footer-links"> <!--Footer Nav-->
-                <a href="#">About ViewFX / Contributors / Download</a>
+                <a target="_blank" href="https://github.com/XpaceOff/viewfx">About ViewFX / Contributors</a>
             </div>
             <div> <!--Footer Social icons-->
-                <a href="index.html"><img src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bi_discord.svg?v=1667780182171" alt="discord" /></a>
-                <a href="index.html"><img class="github" src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bytesize_github.svg?v=1667780182367" alt="github" /></a>
+                <img src="https://cdn.glitch.global/42347811-58b4-457a-be9d-d75dc848203f/bi_discord.svg?v=1667780182171" alt="discord" />
+                <a target="_blank" href="https://github.com/XpaceOff/viewfx"><img class="github" src="img/icons/github.svg" alt="github" /></a>
             </div>
         </div>
-        <span id="copyrights">© ViewFX 2022</span>
+        <span id="copyrights">© ViewFX 2023</span>
       </footer>
     </section>
 
 
 </body>
 </html>
+ 

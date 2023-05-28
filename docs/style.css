@@ -4,6 +4,10 @@ body {
     overflow-x: hidden;
     background: rgb(60,67,111);
     background: linear-gradient(0deg, rgba(60,67,111,1) 0%, rgba(28,28,30,1) 15%, rgba(28,28,30,1) 100%);
+    display: flexbox;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 #logo-img {
@@ -37,24 +41,40 @@ header {
 
 .hero-wrapper {
     margin-top: 100px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: auto;
+    max-height: 500px;
+}
+
+.download {
+  margin-top: 100px;
 }
 
 .copy-and-cta {
     width: 483px;
-    height: 80%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 
 .hero-image-wrapper {
-    width: 50%;
-    display: flex;
-    justify-content: end;
+    width: 100%;
+    grid-row: 1;
+    grid-column: 2;
+    max-height: 400px;
+}
+
+.hero-image {
+  width: 100%;
+  max-height: 400px;
+  min-width: 300px;
+
 }
 
 .nav-links {
@@ -86,19 +106,35 @@ a {
 h2 {
     color: #D3D3D3;
     font-weight: 500;
-    font-size: 36px;
+    font-size: 44px;
     line-height: normal;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.005em;
     margin-bottom: 0;
     margin-top: 0;
 }
 
 h3 {
-    color: #D3D3D3;
-    font-weight: 400;
-    letter-spacing: 0.01em;
+    color: #d3d3d3f0;
+    font-weight: 300;
+    letter-spacing: 0.005em;
     font-size: 20px;
-    margin-top: 0.8em;
+    margin-top: 1.2em;
+}
+
+h4 {
+  color: #d3d3d3ed;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-size: 22px;
+  margin-top: 40px;
+}
+
+h5 {
+  color: #d3d3d3db;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-size: 20px;
+  margin-top: 28px;
 }
 
 p {
@@ -108,7 +144,37 @@ p {
     padding-top: 10px;
 }
 
+.feature-text {
+  color: #d3d3d3d1;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  font-size: 16px;
+  margin-top: 0px;
+  padding-top: 0px;
+  text-align: center;
+}
 
+.download-text {
+  color: #d3d3d3d1;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  font-size: 16px;
+  margin-top: 0px;
+  padding-top: 0px;
+
+}
+
+.download-link {
+  color: #5FBCFF;
+  font-weight: 400;
+  font-size: 16px;
+  text-decoration: underline;
+  margin-left: 10px;
+}
+
+.space {
+  height: 250px;
+}
 
 #cta-its-free {
     color: #5FBCFF;
@@ -121,12 +187,13 @@ p {
 .feature-wrapper {
     margin-top: 200px;
     display: grid;
-    gap: 56px;
+    gap: 40px;
+    max-width: ;
 }
 
 .feature-container {
-    min-width: 250px;
-    height: 280px;
+    min-width: 100px;
+    height: auto;
     border-radius: 32px;
     -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
@@ -136,7 +203,20 @@ p {
     background-image: radial-gradient(circle at 50% 0%, #343a43, rgba(56, 55, 63, 0.33) 68%), linear-gradient(to bottom, #454a4d 0%, #111313 100%);
     background-origin: border-box;
     background-clip: content-box, border-box;
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 28px 28px 18px 28px;
+    background-clip: padding-box;
 }
+
+.feature-icon {
+  width: 44px;
+}
+
+
 
 .two {
   grid-row: 1;
@@ -172,6 +252,7 @@ button {
     border: none;
     margin-bottom: 0;
     letter-spacing: 0.02em;
+    cursor: pointer;
   }
 
 .vid-placefolder {
@@ -268,4 +349,58 @@ button {
 
   .github {
     margin-left: 20px;
+  }
+
+  .ffmpeg {
+    font-size: 10px;
+    color: #a2a2a2d1;
+  }
+
+  .ffmpeg-link {
+    font-size: 10px;
+    color: #a2a2a2d1;
+    text-decoration: underline;
+  }
+
+  .download-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    gap: 20px;
+    width: 100%;
+    height: auto;
+
+  }
+
+  .download-1 {
+    grid-row: 1;
+    grid-column: 1;
+    border: 0.5px solid #464646;
+    padding: 20px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+  .download-2 {
+    grid-row: 1;
+    grid-column: 2;
+    border: 0.5px solid #464646;
+    padding: 20px;
+    border-radius: 4px;    
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+  .download-3 {
+    grid-row: 1;
+    grid-column: 3;
+    border: 0.5px solid #464646;
+    padding: 20px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
   }
